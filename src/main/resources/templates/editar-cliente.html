@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Editar cliente | AviControl</title>
+
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+
+    <style>
+        .navegacion-avi {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 18px 28px;
+            background: #176b3a;
+            color: white;
+        }
+
+        .navegacion-marca {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .navegacion-marca strong {
+            font-size: 21px;
+        }
+
+        .navegacion-marca span {
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+        .navegacion-enlaces {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .navegacion-enlaces a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 13px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .navegacion-enlaces a:hover,
+        .navegacion-enlaces a.activo {
+            background: #ffffff26;
+        }
+
+        .contenedor-clientes {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .panel-clientes {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-clientes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .campo label {
+            font-weight: 600;
+        }
+
+        .campo input,
+        .campo textarea {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font: inherit;
+            box-sizing: border-box;
+        }
+
+        .campo textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .completo {
+            grid-column: 1 / -1;
+        }
+
+        .boton-verde {
+            background: #198754;
+            color: white;
+            padding: 12px 20px;
+            border: 0;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .boton-verde:hover {
+            background: #146c43;
+        }
+
+        .boton-secundario {
+            background: #e9ecef;
+            color: #212529;
+            padding: 12px 20px;
+            border-radius: 7px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ayuda {
+            font-size: 13px;
+            color: #647166;
+        }
+
+        @media (max-width: 600px) {
+            .navegacion-avi {
+                padding: 16px;
+            }
+
+            .navegacion-enlaces {
+                width: 100%;
+            }
+
+            .contenedor-clientes {
+                padding: 12px;
+            }
+
+            .panel-clientes {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVEGACIÓN -->
+
+    <header class="navegacion-avi">
+
+        <div class="navegacion-marca">
+            <strong>🐔 AviControl</strong>
+            <span>Gestión avícola</span>
+        </div>
+
+        <nav class="navegacion-enlaces" aria-label="Navegación principal">
+            <a th:href="@{/}">Inicio</a>
+            <a th:href="@{/lotes}">Lotes</a>
+            <a th:href="@{/gastos}">Gastos</a>
+            <a th:href="@{/ventas}">Ventas</a>
+            <a th:href="@{/clientes}" class="activo">Clientes</a>
+        </nav>
+
+    </header>
+
+    <!-- CONTENIDO -->
+
+    <main class="contenedor-clientes">
+
+        <h1>Editar cliente</h1>
+
+        <p class="ayuda">
+            Actualiza los datos del cliente registrado en AviControl.
+        </p>
+
+        <section class="panel-clientes">
+
+            <h2>Información del cliente</h2>
+
+            <form th:action="@{/clientes/actualizar/{id}(id=${clienteEditar.id})}"
+                  th:object="${clienteEditar}"
+                  method="post"
+                  class="form-clientes">
+
+                <!-- NOMBRE -->
+
+                <div class="campo">
+                    <label for="nombre">Nombre del cliente *</label>
+
+                    <input type="text"
+                           id="nombre"
+                           th:field="*{nombre}"
+                           maxlength="255"
+                           placeholder="Nombre completo"
+                           required>
+                </div>
+
+                <!-- TELÉFONO -->
+
+                <div class="campo">
+                    <label for="telefono">Teléfono</label>
+
+                    <input type="text"
+                           id="telefono"
+                           th:field="*{telefono}"
+                           placeholder="Número de teléfono">
+                </div>
+
+                <!-- DIRECCIÓN -->
+
+                <div class="campo">
+                    <label for="direccion">Dirección</label>
+
+                    <input type="text"
+                           id="direccion"
+                           th:field="*{direccion}"
+                           placeholder="Dirección del cliente">
+                </div>
+
+                <!-- OBSERVACIONES -->
+
+                <div class="campo completo">
+                    <label for="observaciones">Observaciones</label>
+
+                    <textarea id="observaciones"
+                              th:field="*{observaciones}"
+                              placeholder="Información adicional del cliente"></textarea>
+                </div>
+
+                <!-- BOTONES -->
+
+                <div class="completo acciones">
+
+                    <button type="submit" class="boton-verde">
+                        Actualizar cliente
+                    </button>
+
+                    <a th:href="@{/clientes}" class="boton-secundario">
+                        Cancelar
+                    </a>
+
+                </div>
+
+            </form>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

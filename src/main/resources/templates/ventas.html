@@ -1,0 +1,461 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Ventas | AviControl</title>
+
+<link rel="stylesheet" th:href="@{/css/estilos.css}">
+
+<style>
+.navegacion-avi {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    flex-wrap:wrap;
+    padding:18px 28px;
+    background:#176b3a;
+    color:white;
+}
+.navegacion-marca {
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+.navegacion-marca strong {font-size:21px;}
+.navegacion-marca span {font-size:12px;opacity:.85;}
+.navegacion-enlaces {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+}
+.navegacion-enlaces a {
+    color:white;
+    text-decoration:none;
+    padding:10px 13px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:600;
+}
+.navegacion-enlaces a:hover,
+.navegacion-enlaces a.activo {
+    background:#ffffff26;
+}
+.contenedor {
+    max-width:1200px;
+    margin:30px auto;
+    padding:20px;
+}
+.panel {
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    margin-bottom:25px;
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+}
+.formulario {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px;
+}
+.campo {
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    position:relative;
+}
+.campo label {font-weight:600;}
+input,select,textarea {
+    width:100%;
+    padding:11px;
+    border:1px solid #ccc;
+    border-radius:7px;
+    font:inherit;
+    box-sizing:border-box;
+}
+textarea {min-height:80px;resize:vertical;}
+.completo {grid-column:1/-1;}
+.btn-verde {
+    background:#176b3a;
+    color:white;
+    border:0;
+    padding:12px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+.btn-verde:hover {background:#10532c;}
+.btn-gris {
+    background:#e9ecef;
+    color:#212529;
+    text-decoration:none;
+    padding:12px 18px;
+    border-radius:8px;
+    font-weight:bold;
+    display:inline-block;
+}
+.resumenes {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+    margin-bottom:25px;
+}
+.resumen {
+    background:#e3f5e8;
+    padding:20px;
+    border-radius:10px;
+}
+.resumen p {margin:0 0 8px;}
+.resumen strong {
+    font-size:24px;
+    color:#176b3a;
+}
+.tabla-contenedor {overflow-x:auto;}
+table {
+    width:100%;
+    border-collapse:collapse;
+    min-width:850px;
+}
+th,td {
+    padding:12px;
+    border-bottom:1px solid #e5e9e6;
+    text-align:left;
+}
+th {
+    background:#edf5ef;
+    color:#176b3a;
+}
+.mensaje {
+    padding:12px;
+    margin-bottom:15px;
+    border-radius:8px;
+}
+.exito {background:#d9f5df;color:#176b3a;}
+.error {background:#ffe0e0;color:#a21b1b;}
+.ayuda {font-size:13px;color:#647166;}
+.filtro {
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:end;
+}
+.lista-clientes {
+    position:absolute;
+    top:100%;
+    left:0;
+    right:0;
+    background:white;
+    border:1px solid #ccc;
+    border-top:none;
+    border-radius:0 0 8px 8px;
+    max-height:180px;
+    overflow-y:auto;
+    display:none;
+    z-index:999;
+}
+.item-cliente {padding:10px;cursor:pointer;}
+.item-cliente:hover {background:#e3f5e8;}
+footer {
+    text-align:center;
+    padding:25px;
+    color:#6b776e;
+}
+@media(max-width:600px) {
+    .navegacion-avi {padding:16px;}
+    .navegacion-enlaces {width:100%;}
+    .contenedor {padding:12px;}
+    .panel {padding:16px;}
+}
+</style>
+</head>
+
+<body>
+
+<header class="navegacion-avi">
+    <div class="navegacion-marca">
+        <strong>🐔 AviControl</strong>
+        <span>Gestión avícola</span>
+    </div>
+
+    <nav class="navegacion-enlaces" aria-label="Navegación principal">
+        <a th:href="@{/}">Inicio</a>
+        <a th:href="@{/lotes}">Lotes</a>
+        <a th:href="@{/gastos}">Gastos</a>
+        <a th:href="@{/ventas}" class="activo">Ventas</a>
+        <a th:href="@{/clientes}">Clientes</a>
+    </nav>
+</header>
+
+<main class="contenedor">
+
+    <h1>Gestión de ventas</h1>
+    <p>Registra y consulta las ventas de tus pollos de engorde.</p>
+
+    <div th:if="${mensajeExito}" class="mensaje exito"
+         th:text="${mensajeExito}"></div>
+
+    <div th:if="${mensajeError}" class="mensaje error"
+         th:text="${mensajeError}"></div>
+
+    <!-- REGISTRAR VENTA -->
+    <section class="panel">
+
+        <h2>Registrar una venta</h2>
+
+        <p class="ayuda">
+            Pesa todos los pollos juntos. El sistema calcula automáticamente el valor.
+        </p>
+
+        <div th:if="${#lists.isEmpty(lotes)}" class="mensaje error">
+            No hay lotes registrados. Primero debes registrar un lote.
+        </div>
+
+        <form th:unless="${#lists.isEmpty(lotes)}"
+              th:action="@{/ventas/guardar}"
+              th:object="${nuevaVenta}"
+              method="post"
+              class="formulario">
+
+            <div class="campo">
+                <label for="loteId">Lote</label>
+
+                <select id="loteId" name="loteId" required>
+                    <option value="">Selecciona un lote</option>
+
+                    <option th:each="lote:${lotes}"
+                            th:value="${lote.id}"
+                            th:text="${lote.codigo+' - '+lote.estado}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- BUSCADOR DE CLIENTES -->
+            <div class="campo">
+                <label for="buscarCliente">Cliente</label>
+
+                <input type="text"
+                       id="buscarCliente"
+                       placeholder="Escribe el nombre del cliente..."
+                       autocomplete="off">
+
+                <input type="hidden"
+                       id="clienteId"
+                       name="clienteId">
+
+                <div class="lista-clientes" id="listaClientes">
+                    <div class="item-cliente"
+                         th:each="cliente:${clientes}"
+                         th:attr="data-id=${cliente.id},data-nombre=${cliente.nombre}"
+                         th:text="${cliente.nombre}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="campo">
+                <label for="fecha">Fecha</label>
+                <input type="date" id="fecha" th:field="*{fecha}" required>
+            </div>
+
+            <div class="campo">
+                <label for="cantidadPollos">Cantidad de pollos</label>
+                <input type="number"
+                       id="cantidadPollos"
+                       th:field="*{cantidadPollos}"
+                       min="1"
+                       required>
+            </div>
+
+            <div class="campo">
+                <label for="pesoTotal">Peso total (kg)</label>
+                <input type="number"
+                       id="pesoTotal"
+                       th:field="*{pesoTotal}"
+                       step="0.01"
+                       min="0.01"
+                       required>
+                <span class="ayuda">Peso combinado de todos los pollos.</span>
+            </div>
+
+            <div class="campo">
+                <label for="precioPorKilo">Precio por kilo</label>
+                <input type="number"
+                       id="precioPorKilo"
+                       th:field="*{precioPorKilo}"
+                       min="0.01"
+                       required>
+            </div>
+
+            <div class="campo">
+                <label for="totalCalculado">Total</label>
+                <input type="text" id="totalCalculado" readonly>
+            </div>
+
+            <div class="campo completo">
+                <label for="observaciones">Observaciones</label>
+                <textarea id="observaciones"
+                          th:field="*{observaciones}"
+                          placeholder="Información adicional (opcional)"></textarea>
+            </div>
+
+            <div class="completo">
+                <button class="btn-verde" type="submit">
+                    Guardar venta
+                </button>
+            </div>
+
+        </form>
+    </section>
+
+    <!-- RESUMEN -->
+    <section class="resumenes">
+
+        <div class="resumen">
+            <p>Ingresos totales</p>
+            <strong th:text="${#numbers.formatDecimal(totalGeneral,1,'POINT',2,'COMMA')}"></strong>
+        </div>
+
+        <div class="resumen">
+            <p>Consulta actual</p>
+            <strong th:text="${#numbers.formatDecimal(totalSeleccionado,1,'POINT',2,'COMMA')}"></strong>
+        </div>
+
+    </section>
+
+    <!-- HISTORIAL -->
+    <section class="panel">
+
+        <h2>Historial de ventas</h2>
+
+        <form class="filtro" method="get" th:action="@{/ventas}">
+
+            <div class="campo">
+                <label for="filtroLote">Filtrar por lote</label>
+
+                <select id="filtroLote" name="loteId">
+                    <option value="">Todos</option>
+
+                    <option th:each="lote:${lotes}"
+                            th:value="${lote.id}"
+                            th:selected="${loteSeleccionadoId!=null and loteSeleccionadoId==lote.id}"
+                            th:text="${lote.codigo}">
+                    </option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-verde">Consultar</button>
+
+            <a class="btn-gris" th:href="@{/ventas}">Ver todas</a>
+
+        </form>
+
+        <div class="tabla-contenedor">
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Lote</th>
+                    <th>Cliente</th>
+                    <th>Pollos</th>
+                    <th>Peso</th>
+                    <th>Precio/kg</th>
+                    <th>Total</th>
+                    <th>Observaciones</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="venta:${ventas}">
+                    <td th:text="${venta.fecha}"></td>
+                    <td th:text="${venta.lote!=null?venta.lote.codigo:'-'}"></td>
+                    <td th:text="${venta.cliente!=null?venta.cliente.nombre:'Sin cliente'}"></td>
+                    <td th:text="${venta.cantidadPollos}"></td>
+                    <td th:text="${#numbers.formatDecimal(venta.pesoTotal,1,'POINT',2,'COMMA')}"></td>
+                    <td th:text="${#numbers.formatDecimal(venta.precioPorKilo,1,'POINT',2,'COMMA')}"></td>
+                    <td th:text="${#numbers.formatDecimal(venta.totalVenta,1,'POINT',2,'COMMA')}"></td>
+                    <td th:text="${venta.observaciones}"></td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(ventas)}">
+                    <td colspan="8">No hay ventas registradas.</td>
+                </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    AviControl · Gestión de pollos de engorde
+</footer>
+
+<script>
+// CALCULAR TOTAL
+
+const peso = document.getElementById("pesoTotal");
+const precio = document.getElementById("precioPorKilo");
+const total = document.getElementById("totalCalculado");
+
+function calcular() {
+    const valor = (Number(peso.value)||0) * (Number(precio.value)||0);
+
+    total.value = valor.toLocaleString("es-CO", {
+        style:"currency",
+        currency:"COP",
+        maximumFractionDigits:2
+    });
+}
+
+peso.addEventListener("input", calcular);
+precio.addEventListener("input", calcular);
+calcular();
+
+// BUSCADOR DE CLIENTES
+
+const buscador = document.getElementById("buscarCliente");
+const lista = document.getElementById("listaClientes");
+const oculto = document.getElementById("clienteId");
+
+const items = [...document.querySelectorAll(".item-cliente")];
+
+buscador.addEventListener("input", function() {
+    oculto.value = "";
+
+    const texto = this.value.trim().toLowerCase();
+    let visibles = 0;
+
+    items.forEach(item => {
+        const coincide = item.dataset.nombre.toLowerCase().includes(texto);
+
+        item.style.display = coincide ? "block" : "none";
+
+        if (coincide) visibles++;
+    });
+
+    lista.style.display = texto && visibles ? "block" : "none";
+});
+
+items.forEach(item => {
+    item.addEventListener("click", function() {
+        buscador.value = this.dataset.nombre;
+        oculto.value = this.dataset.id;
+        lista.style.display = "none";
+    });
+});
+
+document.addEventListener("click", function(event) {
+    if (!event.target.closest("#buscarCliente") &&
+        !event.target.closest("#listaClientes")) {
+        lista.style.display = "none";
+    }
+});
+</script>
+
+</body>
+</html>

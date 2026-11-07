@@ -1,0 +1,478 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gestión de gastos | AviControl</title>
+
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+
+    <style>
+        /* Navegación principal de AviControl */
+        .navegacion-avi {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 18px 28px;
+            background: #176b3a;
+            color: white;
+        }
+
+        .navegacion-marca {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .navegacion-marca strong {
+            font-size: 21px;
+        }
+
+        .navegacion-marca span {
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+        .navegacion-enlaces {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .navegacion-enlaces a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 13px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .navegacion-enlaces a:hover,
+        .navegacion-enlaces a.activo {
+            background: #ffffff26;
+        }
+
+        /* Contenido general */
+        .contenedor-gastos {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .panel-gastos {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, .08);
+        }
+
+        .form-gastos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .campo label {
+            font-weight: 600;
+        }
+
+        .campo input,
+        .campo select,
+        .campo textarea {
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font: inherit;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .campo textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .campo-completo {
+            grid-column: 1 / -1;
+        }
+
+        .boton-guardar {
+            background: #198754;
+            color: white;
+            padding: 12px 20px;
+            border: 0;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .boton-guardar:hover {
+            background: #146c43;
+        }
+
+        .boton-secundario {
+            background: #e9ecef;
+            color: #212529;
+            padding: 12px 20px;
+            border: 0;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .filtro-gastos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: end;
+            margin-bottom: 22px;
+        }
+
+        .filtro-gastos .campo {
+            flex: 1;
+            min-width: 220px;
+            max-width: 400px;
+        }
+
+        .resumen-gastos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .tarjeta-total {
+            padding: 20px;
+            border-radius: 10px;
+            background: #e8f5e9;
+        }
+
+        .tarjeta-total.general {
+            background: #eaf2ff;
+        }
+
+        .tarjeta-total p {
+            margin: 0 0 10px;
+        }
+
+        .tarjeta-total h2 {
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .tabla-contenedor {
+            overflow-x: auto;
+        }
+
+        .tabla-gastos {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tabla-gastos th,
+        .tabla-gastos td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tabla-gastos th {
+            background: #f1f5f2;
+        }
+
+        .mensaje {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 7px;
+        }
+
+        .exito {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        @media (max-width: 600px) {
+            .navegacion-avi {
+                padding: 16px;
+            }
+
+            .navegacion-enlaces {
+                width: 100%;
+            }
+
+            .contenedor-gastos {
+                padding: 12px;
+            }
+
+            .panel-gastos {
+                padding: 16px;
+            }
+
+            .filtro-gastos .campo {
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Barra de navegación compartida -->
+<header class="navegacion-avi">
+    <div class="navegacion-marca">
+        <strong>🐔 AviControl</strong>
+        <span>Gestión avícola</span>
+    </div>
+
+    <nav class="navegacion-enlaces" aria-label="Navegación principal">
+        <a th:href="@{/}">Inicio</a>
+        <a th:href="@{/lotes}">Lotes</a>
+        <a th:href="@{/gastos}" class="activo">Gastos</a>
+        <a th:href="@{/ventas}">Ventas</a>
+        <a th:href="@{/clientes}">Clientes</a>
+    </nav>
+</header>
+
+<main class="contenedor-gastos">
+
+    <h1>Gestión de gastos</h1>
+
+    <p>Registra y consulta los gastos de cada lote de pollos.</p>
+
+    <div th:if="${mensajeExito}"
+         class="mensaje exito"
+         th:text="${mensajeExito}">
+    </div>
+
+    <div th:if="${mensajeError}"
+         class="mensaje error"
+         th:text="${mensajeError}">
+    </div>
+
+    <!-- REGISTRAR GASTO -->
+    <section class="panel-gastos">
+
+        <h2>Registrar un gasto</h2>
+
+        <div th:if="${#lists.isEmpty(lotes)}" class="mensaje error">
+            No hay lotes registrados. Primero debes registrar un lote.
+        </div>
+
+        <form th:unless="${#lists.isEmpty(lotes)}"
+              th:action="@{/gastos/guardar}"
+              th:object="${nuevoGasto}"
+              method="post"
+              class="form-gastos">
+
+            <div class="campo">
+                <label for="loteId">Lote *</label>
+
+                <select id="loteId" name="loteId" required>
+                    <option value="">Selecciona un lote</option>
+
+                    <option th:each="lote : ${lotes}"
+                            th:value="${lote.id}"
+                            th:text="${lote.codigo + ' - ' + lote.estado}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="categoria">Categoría *</label>
+
+                <select id="categoria"
+                        th:field="*{categoria}"
+                        required>
+
+                    <option value="">Selecciona una categoría</option>
+                    <option value="Alimentación">Alimentación</option>
+                    <option value="Medicamentos">Medicamentos</option>
+                    <option value="Vacunas">Vacunas</option>
+                    <option value="Vitaminas">Vitaminas</option>
+                    <option value="Aserrín">Aserrín y cama</option>
+                    <option value="Mano de obra">Mano de obra</option>
+                    <option value="Agua">Agua</option>
+                    <option value="Transporte">Transporte</option>
+                    <option value="Otros">Otros</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="descripcion">Descripción *</label>
+
+                <input id="descripcion"
+                       type="text"
+                       th:field="*{descripcion}"
+                       maxlength="255"
+                       placeholder="Describe el gasto"
+                       required>
+            </div>
+
+            <div class="campo">
+                <label for="valor">Valor en pesos colombianos *</label>
+
+                <input id="valor"
+                       type="number"
+                       th:field="*{valor}"
+                       min="0.01"
+                       step="0.01"
+                       placeholder="Ej. 90000"
+                       required>
+            </div>
+
+            <div class="campo">
+                <label for="fecha">Fecha del gasto *</label>
+
+                <input id="fecha"
+                       type="date"
+                       th:field="*{fecha}"
+                       required>
+            </div>
+
+            <div class="campo campo-completo">
+                <label for="observaciones">Observaciones</label>
+
+                <textarea id="observaciones"
+                          th:field="*{observaciones}"
+                          placeholder="Información adicional (opcional)"></textarea>
+            </div>
+
+            <div class="campo campo-completo">
+                <button type="submit" class="boton-guardar">
+                    Guardar gasto
+                </button>
+            </div>
+
+        </form>
+    </section>
+
+    <!-- CONSULTAR GASTOS -->
+    <section class="panel-gastos">
+
+        <h2>Consultar gastos por lote</h2>
+
+        <form th:action="@{/gastos}"
+              method="get"
+              class="filtro-gastos">
+
+            <div class="campo">
+                <label for="filtroLote">Seleccionar lote</label>
+
+                <select id="filtroLote" name="loteId">
+                    <option value="">Todos los lotes</option>
+
+                    <option th:each="lote : ${lotes}"
+                            th:value="${lote.id}"
+                            th:selected="${loteSeleccionadoId != null and loteSeleccionadoId.equals(lote.id)}"
+                            th:text="${lote.codigo + ' - ' + lote.estado}">
+                    </option>
+                </select>
+            </div>
+
+            <button type="submit" class="boton-guardar">
+                Consultar
+            </button>
+
+            <a class="boton-secundario" th:href="@{/gastos}">
+                Ver todos
+            </a>
+
+        </form>
+
+        <!-- TOTALES -->
+        <div class="resumen-gastos">
+
+            <div class="tarjeta-total">
+                <p th:if="${loteSeleccionadoId == null}">
+                    Total de todos los gastos
+                </p>
+
+                <p th:unless="${loteSeleccionadoId == null}">
+                    Total del lote seleccionado
+                </p>
+
+                <h2 th:text="${'$ ' + #numbers.formatDecimal(totalSeleccionado, 1, 'POINT', 2, 'COMMA')}">
+                    $ 0,00
+                </h2>
+            </div>
+
+            <div class="tarjeta-total general">
+                <p>Total general de todos los lotes</p>
+
+                <h2 th:text="${'$ ' + #numbers.formatDecimal(totalGeneral, 1, 'POINT', 2, 'COMMA')}">
+                    $ 0,00
+                </h2>
+            </div>
+
+        </div>
+
+        <!-- TABLA DE GASTOS -->
+        <h2>Gastos registrados</h2>
+
+        <div class="tabla-contenedor">
+            <table class="tabla-gastos">
+
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Lote</th>
+                    <th>Categoría</th>
+                    <th>Descripción</th>
+                    <th>Valor</th>
+                    <th>Observaciones</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="gasto : ${gastos}">
+                    <td th:text="${gasto.fecha}"></td>
+
+                    <td th:text="${gasto.lote != null ? gasto.lote.codigo : '-'}"></td>
+
+                    <td th:text="${gasto.categoria}"></td>
+
+                    <td th:text="${gasto.descripcion}"></td>
+
+                    <td th:text="${'$ ' + #numbers.formatDecimal(gasto.valor, 1, 'POINT', 2, 'COMMA')}"></td>
+
+                    <td th:text="${gasto.observaciones != null and !gasto.observaciones.isBlank() ? gasto.observaciones : '-'}"></td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(gastos)}">
+                    <td colspan="6">
+                        No hay gastos registrados para esta consulta.
+                    </td>
+                </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+    </section>
+
+</main>
+
+</body>
+</html>

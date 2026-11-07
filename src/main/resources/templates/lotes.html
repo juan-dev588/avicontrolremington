@@ -1,0 +1,745 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de lotes | AviControl</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+
+    <style>
+        /* Navegación principal */
+        .navegacion-avi {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 18px 28px;
+            background: #176b3a;
+            color: white;
+        }
+
+        .navegacion-marca {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .navegacion-marca strong {
+            font-size: 21px;
+        }
+
+        .navegacion-marca span {
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+        .navegacion-enlaces {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .navegacion-enlaces a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 13px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .navegacion-enlaces a:hover,
+        .navegacion-enlaces a.activo {
+            background: #ffffff26;
+        }
+
+        /* Contenido de lotes */
+        .lotes-contenido {
+            padding: 28px;
+        }
+
+        .volver-inicio {
+            display: inline-block;
+            margin-bottom: 22px;
+            color: #21834b;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .lotes-encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .lotes-encabezado h1 {
+            margin: 0 0 8px;
+            color: #183c2b;
+            font-size: 28px;
+        }
+
+        .lotes-encabezado p {
+            margin: 0;
+            color: #6b7c70;
+        }
+
+        .boton-principal {
+            border: 0;
+            border-radius: 10px;
+            padding: 12px 18px;
+            background: #21834b;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .boton-principal:hover {
+            background: #17683a;
+        }
+
+        .lotes-resumen {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .resumen-tarjeta {
+            background: white;
+            border: 1px solid #e6eee8;
+            border-radius: 14px;
+            padding: 22px;
+        }
+
+        .resumen-tarjeta span {
+            display: block;
+            color: #718076;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .resumen-tarjeta strong {
+            display: block;
+            color: #1b3e2c;
+            font-size: 27px;
+        }
+
+        .lotes-panel {
+            background: white;
+            border: 1px solid #e6eee8;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .lotes-panel-cabecera {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px;
+            gap: 16px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #edf1ed;
+        }
+
+        .lotes-panel-cabecera h2 {
+            margin: 0;
+            font-size: 19px;
+            color: #203d2d;
+        }
+
+        .buscador-lotes {
+            width: 260px;
+            max-width: 100%;
+            border: 1px solid #dce6de;
+            border-radius: 9px;
+            padding: 11px 13px;
+            outline: none;
+        }
+
+        .tabla-contenedor {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .tabla-lotes {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+
+        .tabla-lotes th,
+        .tabla-lotes td {
+            text-align: left;
+            padding: 16px 20px;
+            border-bottom: 1px solid #edf1ed;
+            font-size: 14px;
+        }
+
+        .tabla-lotes th {
+            color: #66766b;
+            background: #f8fbf8;
+            font-weight: 600;
+        }
+
+        .tabla-lotes td {
+            color: #34483b;
+        }
+
+        .estado-lote {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: #e3f5e8;
+            color: #217342;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .sin-lotes {
+            padding: 35px;
+            text-align: center;
+            color: #718076;
+        }
+
+        .mensaje {
+            margin-bottom: 18px;
+            padding: 13px 16px;
+            border-radius: 9px;
+        }
+
+        .mensaje-exito {
+            color: #17683a;
+            background: #e3f5e8;
+        }
+
+        .mensaje-error {
+            color: #a12622;
+            background: #fff0ee;
+        }
+
+        /* Ventana para registrar lotes */
+        .modal-lote {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: #10251bcc;
+            overflow-y: auto;
+        }
+
+        .modal-lote[hidden] {
+            display: none;
+        }
+
+        .modal-contenido {
+            background: white;
+            width: 100%;
+            max-width: 650px;
+            max-height: calc(100vh - 36px);
+            overflow-y: auto;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px #0003;
+        }
+
+        .modal-cabecera {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 24px;
+            border-bottom: 1px solid #e6eee8;
+        }
+
+        .modal-cabecera h2 {
+            margin: 0;
+            color: #183c2b;
+            font-size: 21px;
+        }
+
+        .boton-x {
+            border: 0;
+            background: transparent;
+            font-size: 26px;
+            cursor: pointer;
+            color: #6b7c70;
+        }
+
+        .formulario-lote {
+            padding: 24px;
+        }
+
+        .campos-lote {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .campo-lote {
+            display: grid;
+            gap: 7px;
+        }
+
+        .campo-lote.completo {
+            grid-column: 1 / -1;
+        }
+
+        .campo-lote label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #34483b;
+        }
+
+        .campo-lote input,
+        .campo-lote select,
+        .campo-lote textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d8e0d8;
+            border-radius: 9px;
+            font: inherit;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .campo-lote input:focus,
+        .campo-lote select:focus,
+        .campo-lote textarea:focus {
+            outline: 2px solid #c2e4ce;
+            border-color: #21834b;
+        }
+
+        .campo-lote textarea {
+            min-height: 85px;
+            resize: vertical;
+        }
+
+        .ayuda-lote {
+            color: #718076;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .modal-acciones {
+            display: flex;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .boton-cancelar {
+            border: 1px solid #dce6de;
+            border-radius: 9px;
+            padding: 11px 16px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .boton-guardar {
+            border: 0;
+            border-radius: 9px;
+            padding: 11px 16px;
+            background: #21834b;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Acciones de cada lote */
+        .acciones-lote {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 7px;
+            min-width: 300px;
+        }
+
+        .btn-lote {
+            display: inline-block;
+            padding: 7px 10px;
+            border: 0;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        /* Botón nuevo: Ver detalle */
+        .btn-detalle {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .btn-detalle:hover {
+            background: #bbf7d0;
+        }
+
+        .btn-editar {
+            background: #e0edff;
+            color: #1d4ed8;
+        }
+
+        .btn-finalizar {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .btn-eliminar {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .form-accion-lote {
+            display: inline;
+            margin: 0;
+        }
+
+        @media (max-width: 760px) {
+            .lotes-contenido {
+                padding: 18px;
+            }
+
+            .lotes-resumen {
+                grid-template-columns: 1fr;
+            }
+
+            .lotes-encabezado h1 {
+                font-size: 24px;
+            }
+
+            .campos-lote {
+                grid-template-columns: 1fr;
+            }
+
+            .campo-lote.completo {
+                grid-column: auto;
+            }
+
+            .modal-cabecera,
+            .formulario-lote {
+                padding: 18px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .navegacion-avi {
+                padding: 16px;
+            }
+
+            .navegacion-enlaces {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Barra de navegación compartida -->
+<header class="navegacion-avi">
+    <div class="navegacion-marca">
+        <strong>🐔 AviControl</strong>
+        <span>Gestión avícola</span>
+    </div>
+
+    <nav class="navegacion-enlaces" aria-label="Navegación principal">
+        <a th:href="@{/}">Inicio</a>
+        <a th:href="@{/lotes}" class="activo">Lotes</a>
+        <a th:href="@{/gastos}">Gastos</a>
+        <a th:href="@{/ventas}">Ventas</a>
+        <a th:href="@{/clientes}">Clientes</a>
+    </nav>
+</header>
+
+<div class="lotes-contenido">
+
+    <div th:if="${mensajeExito}"
+         class="mensaje mensaje-exito"
+         th:text="${mensajeExito}"></div>
+
+    <div th:if="${mensajeError}"
+         class="mensaje mensaje-error"
+         th:text="${mensajeError}"></div>
+
+    <header class="lotes-encabezado">
+        <div>
+            <h1>Gestión de lotes</h1>
+            <p>Administra los lotes de pollos de tu negocio.</p>
+        </div>
+
+        <button class="boton-principal"
+                type="button"
+                id="btnRegistrarLote">
+            + Registrar lote
+        </button>
+    </header>
+
+    <section class="lotes-resumen">
+        <article class="resumen-tarjeta">
+            <span>Total de lotes</span>
+            <strong th:text="${#lists.size(lotes)}">0</strong>
+        </article>
+
+        <article class="resumen-tarjeta">
+            <span>Pollos iniciales</span>
+            <strong th:text="${#aggregates.sum(lotes.![cantidadInicial]) ?: 0}">0</strong>
+        </article>
+
+        <article class="resumen-tarjeta">
+            <span>Lotes en crianza</span>
+            <strong th:text="${#lists.size(lotes.?[estado == 'En crianza'])}">0</strong>
+        </article>
+    </section>
+
+    <section class="lotes-panel">
+        <div class="lotes-panel-cabecera">
+            <h2>Todos los lotes</h2>
+
+            <input class="buscador-lotes"
+                   type="search"
+                   id="buscarLote"
+                   placeholder="Buscar por código..."
+                   aria-label="Buscar lotes">
+        </div>
+
+        <div class="tabla-contenedor">
+            <table class="tabla-lotes">
+                <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Fecha de inicio</th>
+                    <th>Pollos iniciales</th>
+                    <th>Costo de pollitos</th>
+                    <th>Estado</th>
+                    <th>Observaciones</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+
+                <tbody id="tablaLotes">
+                <tr th:each="lote : ${lotes}">
+                    <td>
+                        <strong th:text="${lote.codigo}"></strong>
+                    </td>
+
+                    <td th:text="${#temporals.format(lote.fechaInicio, 'dd/MM/yyyy')}"></td>
+
+                    <td th:text="${lote.cantidadInicial}"></td>
+
+                    <td th:text="${#numbers.formatDecimal(lote.costoPollitos, 0, 'POINT', 0, 'COMMA')}"></td>
+
+                    <td>
+                        <span class="estado-lote"
+                              th:text="${lote.estado}"></span>
+                    </td>
+
+                    <td th:text="${lote.observaciones}"></td>
+
+                    <td>
+                        <div class="acciones-lote">
+
+                            <!-- NUEVO BOTÓN: VER DETALLE FINANCIERO -->
+                            <a class="btn-lote btn-detalle"
+                               th:href="@{/lotes/detalle/{id}(id=${lote.id})}">
+                                Ver detalle
+                            </a>
+
+                            <a class="btn-lote btn-editar"
+                               th:href="@{/lotes/editar/{id}(id=${lote.id})}">
+                                Editar
+                            </a>
+
+                            <form class="form-accion-lote"
+                                  th:action="@{/lotes/finalizar/{id}(id=${lote.id})}"
+                                  method="post"
+                                  onsubmit="return confirm('¿Deseas finalizar este lote?');">
+
+                                <button class="btn-lote btn-finalizar"
+                                        type="submit"
+                                        th:if="${lote.estado != 'Finalizado'}">
+                                    Finalizar
+                                </button>
+                            </form>
+
+                            <form class="form-accion-lote"
+                                  th:action="@{/lotes/eliminar/{id}(id=${lote.id})}"
+                                  method="post"
+                                  onsubmit="return confirm('¿Seguro que deseas eliminar este lote? Esta acción no se puede deshacer.');">
+
+                                <button class="btn-lote btn-eliminar"
+                                        type="submit">
+                                    Eliminar
+                                </button>
+                            </form>
+
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="sinResultados"
+             class="sin-lotes"
+             th:if="${#lists.isEmpty(lotes)}">
+            Todavía no hay lotes registrados en la base de datos.
+        </div>
+
+        <div id="sinCoincidencias"
+             class="sin-lotes"
+             hidden>
+            No se encontraron lotes con ese código.
+        </div>
+    </section>
+</div>
+
+<!-- Modal para registrar un lote -->
+<div class="modal-lote" id="modalLote" hidden>
+    <section class="modal-contenido"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="tituloModalLote">
+
+        <header class="modal-cabecera">
+            <h2 id="tituloModalLote">Registrar nuevo lote</h2>
+
+            <button class="boton-x"
+                    id="btnCerrarModalLote"
+                    type="button"
+                    aria-label="Cerrar formulario">
+                ×
+            </button>
+        </header>
+
+        <form class="formulario-lote"
+              id="formularioLote"
+              th:action="@{/lotes/guardar}"
+              th:object="${nuevoLote}"
+              method="post">
+
+            <div class="campos-lote">
+
+                <div class="campo-lote">
+                    <label for="codigoLote">Código del lote *</label>
+                    <input id="codigoLote"
+                           th:field="*{codigo}"
+                           type="text"
+                           placeholder="Ej. L-0002"
+                           required
+                           maxlength="30">
+                </div>
+
+                <div class="campo-lote">
+                    <label for="fechaInicio">Fecha de inicio *</label>
+                    <input id="fechaInicio"
+                           th:field="*{fechaInicio}"
+                           type="date"
+                           required>
+                </div>
+
+                <div class="campo-lote">
+                    <label for="cantidadInicial">Cantidad inicial de pollos *</label>
+                    <input id="cantidadInicial"
+                           th:field="*{cantidadInicial}"
+                           type="number"
+                           min="1"
+                           step="1"
+                           placeholder="Ej. 100"
+                           required>
+                </div>
+
+                <div class="campo-lote">
+                    <label for="costoPollitos">Costo total de los pollitos (COP) *</label>
+                    <input id="costoPollitos"
+                           th:field="*{costoPollitos}"
+                           type="number"
+                           min="0"
+                           step="1"
+                           placeholder="Ej. 900000"
+                           required>
+                </div>
+
+                <div class="campo-lote">
+                    <label for="estadoLote">Estado *</label>
+                    <select id="estadoLote"
+                            th:field="*{estado}"
+                            required>
+                        <option value="En crianza">En crianza</option>
+                        <option value="Finalizado">Finalizado</option>
+                    </select>
+                </div>
+
+                <div class="campo-lote completo">
+                    <label for="observacionesLote">Observaciones</label>
+                    <textarea id="observacionesLote"
+                              th:field="*{observaciones}"
+                              placeholder="Información adicional del lote..."></textarea>
+                </div>
+
+            </div>
+
+            <p class="ayuda-lote" style="margin-top: 16px;">
+                Los campos marcados con * son obligatorios.
+                Los valores monetarios se ingresan en pesos colombianos.
+            </p>
+
+            <div class="modal-acciones">
+                <button class="boton-cancelar"
+                        id="btnCancelarLote"
+                        type="button">
+                    Cancelar
+                </button>
+
+                <button class="boton-guardar" type="submit">
+                    Guardar lote
+                </button>
+            </div>
+        </form>
+    </section>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const buscador = document.getElementById("buscarLote");
+    const filas = document.querySelectorAll("#tablaLotes tr");
+    const sinCoincidencias = document.getElementById("sinCoincidencias");
+
+    if (buscador) {
+        buscador.addEventListener("input", function () {
+
+            const texto = buscador.value.toLowerCase().trim();
+            let visibles = 0;
+
+            filas.forEach(function (fila) {
+                const coincide = fila.textContent.toLowerCase().includes(texto);
+
+                fila.hidden = !coincide;
+
+                if (coincide) {
+                    visibles++;
+                }
+            });
+
+            if (sinCoincidencias) {
+                sinCoincidencias.hidden = visibles > 0 || texto === "";
+            }
+        });
+    }
+});
+</script>
+
+</body>
+</html>

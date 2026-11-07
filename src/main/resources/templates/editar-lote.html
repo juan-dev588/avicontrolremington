@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar lote | AviControl</title>
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+    <style>
+        .contenedor {
+            max-width: 760px;
+            margin: 35px auto;
+            padding: 28px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 5px 25px #0000000d;
+        }
+        h1 { color: #183c2b; margin-top: 0; }
+        .campos {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+        .campo { display: grid; gap: 7px; }
+        .completo { grid-column: 1 / -1; }
+        label { color: #34483b; font-weight: 600; font-size: 14px; }
+        input, select, textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 1px solid #d8e0d8;
+            border-radius: 9px;
+            font: inherit;
+        }
+        textarea { min-height: 90px; resize: vertical; }
+        .acciones { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+        .guardar {
+            border: 0; border-radius: 9px; padding: 12px 18px;
+            background: #21834b; color: white; cursor: pointer;
+        }
+        .cancelar {
+            display: inline-block; padding: 12px 18px; border-radius: 9px;
+            border: 1px solid #d8e0d8; text-decoration: none; color: #34483b;
+        }
+        @media (max-width: 600px) {
+            .contenedor { margin: 15px; padding: 18px; }
+            .campos { grid-template-columns: 1fr; }
+            .completo { grid-column: auto; }
+        }
+    </style>
+</head>
+<body>
+<main class="contenedor">
+    <h1>Editar lote</h1>
+    <p>Modifica los datos del lote seleccionado.</p>
+
+    <form th:action="@{/lotes/actualizar/{id}(id=${loteEditar.id})}"
+          th:object="${loteEditar}" method="post">
+
+        <div class="campos">
+            <div class="campo">
+                <label for="codigo">Código del lote *</label>
+                <input id="codigo" th:field="*{codigo}" required maxlength="30">
+            </div>
+
+            <div class="campo">
+                <label for="fechaInicio">Fecha de inicio *</label>
+                <input id="fechaInicio" type="date"
+                       th:field="*{fechaInicio}" required>
+            </div>
+
+            <div class="campo">
+                <label for="cantidadInicial">Cantidad inicial de pollos *</label>
+                <input id="cantidadInicial" type="number"
+                       th:field="*{cantidadInicial}" min="1" step="1" required>
+            </div>
+
+            <div class="campo">
+                <label for="costoPollitos">Costo de los pollitos (COP) *</label>
+                <input id="costoPollitos" type="number"
+                       th:field="*{costoPollitos}" min="0" step="1" required>
+            </div>
+
+            <div class="campo completo">
+                <label for="estado">Estado *</label>
+                <select id="estado" th:field="*{estado}" required>
+                    <option value="En crianza">En crianza</option>
+                    <option value="Finalizado">Finalizado</option>
+                </select>
+            </div>
+
+            <div class="campo completo">
+                <label for="observaciones">Observaciones</label>
+                <textarea id="observaciones" th:field="*{observaciones}"></textarea>
+            </div>
+        </div>
+
+        <div class="acciones">
+            <a class="cancelar" th:href="@{/lotes}">Cancelar</a>
+            <button class="guardar" type="submit">Guardar cambios</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

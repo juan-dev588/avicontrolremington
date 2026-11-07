@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del lote | AviControl</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            font-family: Arial, sans-serif;
+            background: #f3f6f4;
+            color: #26332b;
+        }
+
+        .contenedor {
+            max-width: 1150px;
+            margin: auto;
+        }
+
+        .encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        h1 { margin-bottom: 5px; }
+
+        .boton {
+            display: inline-block;
+            padding: 11px 17px;
+            border-radius: 7px;
+            background: #247a48;
+            color: white;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .tarjetas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .tarjeta, .seccion {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px #0000000d;
+        }
+
+        .tarjeta p {
+            color: #68746c;
+            margin: 0 0 10px;
+        }
+
+        .tarjeta strong {
+            font-size: 23px;
+        }
+
+        .seccion { margin-bottom: 22px; }
+
+        h2 {
+            font-size: 20px;
+            margin-top: 0;
+        }
+
+        .tabla-contenedor { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 550px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e6ebe7;
+            text-align: left;
+        }
+
+        th { background: #f1f5f2; }
+
+        .positivo { color: #21834b; }
+        .negativo { color: #c0392b; }
+
+        @media(max-width: 600px) {
+            body { padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+<div class="contenedor">
+
+    <div class="encabezado">
+        <div>
+            <h1>Detalle del lote</h1>
+            <p>
+                Lote:
+                <strong th:text="${lote.codigo}"></strong>
+            </p>
+            <p>
+                Estado:
+                <strong th:text="${lote.estado}"></strong>
+            </p>
+        </div>
+
+        <a th:href="@{/lotes}" class="boton">Volver a lotes</a>
+    </div>
+
+    <div class="tarjetas">
+        <div class="tarjeta">
+            <p>Pollos iniciales</p>
+            <strong th:text="${pollosIniciales}"></strong>
+        </div>
+
+        <div class="tarjeta">
+            <p>Pollos muertos</p>
+            <strong th:text="${pollosMuertos}"></strong>
+        </div>
+
+        <div class="tarjeta">
+            <p>Pollos vendidos</p>
+            <strong th:text="${pollosVendidos}"></strong>
+        </div>
+
+        <div class="tarjeta">
+            <p>Pollos disponibles</p>
+            <strong th:text="${pollosDisponibles}"></strong>
+        </div>
+
+        <div class="tarjeta">
+            <p>Inversión total</p>
+            <strong th:text="${#numbers.formatDecimal(inversionTotal, 0, 'POINT', 2, 'COMMA')}"></strong>
+        </div>
+
+        <div class="tarjeta">
+            <p>Total de ventas</p>
+            <strong th:text="${#numbers.formatDecimal(totalVentas, 0, 'POINT', 2, 'COMMA')}"></strong>
+        </div>
+
+        <div class="tarjeta">
+            <p>Dinero recibido</p>
+            <strong th:text="${#numbers.formatDecimal(totalRecibido, 0, 'POINT', 2, 'COMMA')}"></strong>
+        </div>
+
+        <div class="tarjeta">
+            <p>Pendiente por cobrar</p>
+            <strong th:text="${#numbers.formatDecimal(pendienteCobrar, 0, 'POINT', 2, 'COMMA')}"></strong>
+        </div>
+
+        <div class="tarjeta">
+            <p>Ganancia actual</p>
+            <strong th:classappend="${ganancia.compareTo(T(java.math.BigDecimal).ZERO) >= 0} ? 'positivo' : 'negativo'"
+                    th:text="${#numbers.formatDecimal(ganancia, 0, 'POINT', 2, 'COMMA')}"></strong>
+        </div>
+    </div>
+
+    <div class="seccion">
+        <h2>Resumen de inversión</h2>
+        <p>Costo de los pollitos:
+            <strong th:text="${#numbers.formatDecimal(costoPollitos, 0, 'POINT', 2, 'COMMA')}"></strong>
+        </p>
+        <p>Otros gastos:
+            <strong th:text="${#numbers.formatDecimal(totalGastos, 0, 'POINT', 2, 'COMMA')}"></strong>
+        </p>
+        <p>Inversión total:
+            <strong th:text="${#numbers.formatDecimal(inversionTotal, 0, 'POINT', 2, 'COMMA')}"></strong>
+        </p>
+        <p>Ganancia = ventas totales menos inversión total.</p>
+    </div>
+
+    <div class="seccion">
+        <h2>Gastos del lote</h2>
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Categoría</th>
+                    <th>Descripción</th>
+                    <th>Valor</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="gasto : ${gastos}">
+                    <td th:text="${gasto.fecha}"></td>
+                    <td th:text="${gasto.categoria}"></td>
+                    <td th:text="${gasto.descripcion}"></td>
+                    <td th:text="${gasto.valor}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(gastos)}">
+                    <td colspan="4">No hay gastos registrados.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="seccion">
+        <h2>Ventas del lote</h2>
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Pollos</th>
+                    <th>Peso total (kg)</th>
+                    <th>Precio por kg</th>
+                    <th>Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="venta : ${ventas}">
+                    <td th:text="${venta.fecha}"></td>
+                    <td th:text="${venta.cliente != null ? venta.cliente.nombre : 'Sin cliente asignado'}"></td>
+                    <td th:text="${venta.cantidadPollos}"></td>
+                    <td th:text="${venta.pesoTotal}"></td>
+                    <td th:text="${venta.precioPorKilo}"></td>
+                    <td th:text="${venta.totalVenta}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(ventas)}">
+                    <td colspan="6">No hay ventas registradas.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="seccion">
+        <h2>Pagos recibidos</h2>
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                <tr>
+                    <th>Venta</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Valor recibido</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="pago : ${pagos}">
+                    <td th:text="${pago.venta.id}"></td>
+                    <td th:text="${pago.venta.cliente != null ? pago.venta.cliente.nombre : 'Sin cliente asignado'}"></td>
+                    <td th:text="${pago.fecha}"></td>
+                    <td th:text="${pago.valor}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(pagos)}">
+                    <td colspan="4">No hay pagos registrados.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="seccion">
+        <h2>Registro de mortalidad</h2>
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cantidad</th>
+                    <th>Motivo</th>
+                    <th>Observaciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="m : ${mortalidades}">
+                    <td th:text="${m.fecha}"></td>
+                    <td th:text="${m.cantidad}"></td>
+                    <td th:text="${m.motivo}"></td>
+                    <td th:text="${m.observaciones}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(mortalidades)}">
+                    <td colspan="4">No hay mortalidad registrada.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
+```

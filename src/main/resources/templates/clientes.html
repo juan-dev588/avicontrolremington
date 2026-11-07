@@ -1,0 +1,387 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Clientes | AviControl</title>
+
+<link rel="stylesheet" th:href="@{/css/estilos.css}">
+
+<style>
+.navegacion-avi {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    flex-wrap:wrap;
+    padding:18px 28px;
+    background:#176b3a;
+    color:white;
+}
+.navegacion-marca {
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+.navegacion-marca strong {font-size:21px;}
+.navegacion-marca span {font-size:12px;opacity:.85;}
+.navegacion-enlaces {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+}
+.navegacion-enlaces a {
+    color:white;
+    text-decoration:none;
+    padding:10px 13px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:600;
+}
+.navegacion-enlaces a:hover,
+.navegacion-enlaces a.activo {
+    background:#ffffff26;
+}
+.contenedor-clientes {
+    max-width:1200px;
+    margin:30px auto;
+    padding:20px;
+}
+.panel-clientes {
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    margin-bottom:25px;
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+}
+.form-clientes {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px;
+}
+.campo {
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+}
+.campo label {font-weight:600;}
+.campo input,
+.campo textarea {
+    width:100%;
+    padding:11px;
+    border:1px solid #ccc;
+    border-radius:7px;
+    font:inherit;
+    box-sizing:border-box;
+}
+.campo textarea {
+    min-height:80px;
+    resize:vertical;
+}
+.completo {grid-column:1/-1;}
+.boton-verde {
+    background:#198754;
+    color:white;
+    padding:12px 20px;
+    border:0;
+    border-radius:7px;
+    cursor:pointer;
+    font-weight:bold;
+    text-decoration:none;
+    display:inline-block;
+}
+.boton-verde:hover {background:#146c43;}
+.boton-secundario {
+    background:#e9ecef;
+    color:#212529;
+    padding:12px 20px;
+    border:0;
+    border-radius:7px;
+    cursor:pointer;
+    font-weight:bold;
+    text-decoration:none;
+    display:inline-block;
+}
+.boton-rojo {
+    background:#dc3545;
+    color:white;
+    padding:10px 14px;
+    border:0;
+    border-radius:7px;
+    cursor:pointer;
+    font-weight:bold;
+}
+.boton-editar {
+    background:#e9ecef;
+    color:#212529;
+    padding:10px 14px;
+    border-radius:7px;
+    text-decoration:none;
+    font-weight:bold;
+    display:inline-block;
+}
+.filtro-clientes {
+    display:flex;
+    flex-wrap:wrap;
+    gap:15px;
+    align-items:end;
+}
+.filtro-clientes .campo {
+    flex:1;
+    min-width:220px;
+    max-width:400px;
+}
+.tabla-contenedor {overflow-x:auto;}
+.tabla-clientes {
+    width:100%;
+    border-collapse:collapse;
+    min-width:850px;
+}
+.tabla-clientes th,
+.tabla-clientes td {
+    padding:12px;
+    text-align:left;
+    border-bottom:1px solid #ddd;
+}
+.tabla-clientes th {background:#f1f5f2;}
+.acciones {
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+.acciones form {margin:0;}
+.mensaje {
+    padding:12px;
+    margin-bottom:15px;
+    border-radius:7px;
+}
+.exito {background:#d1e7dd;color:#0f5132;}
+.error {background:#f8d7da;color:#842029;}
+.ayuda {font-size:13px;color:#647166;}
+.vacio {
+    text-align:center;
+    padding:25px;
+    color:#647166;
+}
+@media(max-width:600px) {
+    .navegacion-avi {padding:16px;}
+    .navegacion-enlaces {width:100%;}
+    .contenedor-clientes {padding:12px;}
+    .panel-clientes {padding:16px;}
+    .filtro-clientes .campo {max-width:none;}
+}
+</style>
+</head>
+
+<body>
+
+<!-- BARRA DE NAVEGACIÓN COMPARTIDA -->
+
+<header class="navegacion-avi">
+
+    <div class="navegacion-marca">
+        <strong>🐔 AviControl</strong>
+        <span>Gestión avícola</span>
+    </div>
+
+    <nav class="navegacion-enlaces" aria-label="Navegación principal">
+        <a th:href="@{/}">Inicio</a>
+        <a th:href="@{/lotes}">Lotes</a>
+        <a th:href="@{/gastos}">Gastos</a>
+        <a th:href="@{/ventas}">Ventas</a>
+        <a th:href="@{/clientes}" class="activo">Clientes</a>
+    </nav>
+
+</header>
+
+<main class="contenedor-clientes">
+
+    <h1>Gestión de clientes</h1>
+
+    <p>Registra y consulta la información de los compradores de tu negocio.</p>
+
+    <!-- MENSAJES -->
+
+    <div th:if="${mensajeExito}"
+         class="mensaje exito"
+         th:text="${mensajeExito}">
+    </div>
+
+    <div th:if="${mensajeError}"
+         class="mensaje error"
+         th:text="${mensajeError}">
+    </div>
+
+    <!-- REGISTRAR CLIENTE -->
+
+    <section class="panel-clientes">
+
+        <h2>Registrar un cliente</h2>
+
+        <p class="ayuda">
+            Guarda los datos de las personas que compran tus pollos.
+        </p>
+
+        <form th:action="@{/clientes/guardar}"
+              th:object="${nuevoCliente}"
+              method="post"
+              class="form-clientes">
+
+            <div class="campo">
+                <label for="nombre">Nombre del cliente *</label>
+
+                <input id="nombre"
+                       type="text"
+                       th:field="*{nombre}"
+                       maxlength="255"
+                       placeholder="Nombre completo"
+                       required>
+            </div>
+
+            <div class="campo">
+                <label for="telefono">Teléfono</label>
+
+                <input id="telefono"
+                       type="text"
+                       th:field="*{telefono}"
+                       placeholder="Número de teléfono">
+            </div>
+
+            <div class="campo">
+                <label for="direccion">Dirección</label>
+
+                <input id="direccion"
+                       type="text"
+                       th:field="*{direccion}"
+                       placeholder="Dirección del cliente">
+            </div>
+
+            <div class="campo completo">
+                <label for="observaciones">Observaciones</label>
+
+                <textarea id="observaciones"
+                          th:field="*{observaciones}"
+                          placeholder="Información adicional (opcional)"></textarea>
+            </div>
+
+            <div class="campo completo">
+                <button type="submit" class="boton-verde">
+                    Guardar cliente
+                </button>
+            </div>
+
+        </form>
+
+    </section>
+
+    <!-- BUSCAR CLIENTES -->
+
+    <section class="panel-clientes">
+
+        <h2>Consultar clientes</h2>
+
+        <form th:action="@{/clientes}"
+              method="get"
+              class="filtro-clientes">
+
+            <div class="campo">
+                <label for="buscar">Buscar por nombre o teléfono</label>
+
+                <input id="buscar"
+                       type="text"
+                       name="buscar"
+                       th:value="${buscar}"
+                       placeholder="Escribe el nombre o teléfono...">
+            </div>
+
+            <button type="submit" class="boton-verde">
+                Buscar
+            </button>
+
+            <a th:href="@{/clientes}" class="boton-secundario">
+                Ver todos
+            </a>
+
+        </form>
+
+    </section>
+
+    <!-- TABLA DE CLIENTES -->
+
+    <section class="panel-clientes">
+
+        <h2>Clientes registrados</h2>
+
+        <div class="tabla-contenedor">
+
+            <table class="tabla-clientes">
+
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Dirección</th>
+                    <th>Observaciones</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <tr th:each="cliente : ${clientes}">
+
+                    <td th:text="${cliente.id}"></td>
+
+                    <td th:text="${cliente.nombre}"></td>
+
+                    <td th:text="${cliente.telefono != null and !cliente.telefono.isBlank() ? cliente.telefono : '-'}"></td>
+
+                    <td th:text="${cliente.direccion != null and !cliente.direccion.isBlank() ? cliente.direccion : '-'}"></td>
+
+                    <td th:text="${cliente.observaciones != null and !cliente.observaciones.isBlank() ? cliente.observaciones : '-'}"></td>
+
+                    <td>
+                        <div class="acciones">
+
+                            <a th:href="@{/clientes/editar/{id}(id=${cliente.id})}"
+                               class="boton-editar">
+                                Editar
+                            </a>
+
+                            <form th:action="@{/clientes/eliminar/{id}(id=${cliente.id})}"
+                                  method="post"
+                                  onsubmit="return confirm('¿Estás seguro de eliminar este cliente?');">
+
+                                <button type="submit" class="boton-rojo">
+                                    Eliminar
+                                </button>
+
+                            </form>
+
+                        </div>
+                    </td>
+
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(clientes)}">
+                    <td colspan="6" class="vacio">
+                        No hay clientes registrados.
+                    </td>
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+</body>
+</html>

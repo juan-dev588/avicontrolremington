@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+# Proteger la configuracion local de MySQL
+/src/main/resources/application.properties

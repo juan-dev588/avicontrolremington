@@ -1,10 +1,16 @@
-```html
+
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>AviControl | Panel principal</title>
+
+    <!-- FORMATO MARKDOWN Y SEGURIDAD -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
 
     <style>
         * {
@@ -26,6 +32,7 @@
 
         .sidebar {
             width: 250px;
+            flex-shrink: 0;
             background: #173d2b;
             color: white;
             padding: 25px 18px;
@@ -81,6 +88,7 @@
 
         .topbar h1 {
             font-size: 27px;
+            color: #173d2b;
         }
 
         .topbar p {
@@ -96,6 +104,8 @@
             box-shadow: 0 2px 10px #00000008;
             font-size: 14px;
         }
+
+        /* TARJETAS DEL NEGOCIO */
 
         .stats {
             display: grid;
@@ -131,6 +141,8 @@
             margin-top: 10px;
         }
 
+        /* CONTENIDO PRINCIPAL */
+
         .content-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -148,6 +160,7 @@
         .panel h2 {
             font-size: 18px;
             margin-bottom: 18px;
+            color: #173d2b;
         }
 
         .panel-description {
@@ -160,6 +173,7 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
+            margin-top: 18px;
         }
 
         .action-link {
@@ -189,7 +203,8 @@
             font-size: 13px;
         }
 
-        th, td {
+        th,
+        td {
             padding: 13px 10px;
             text-align: left;
             border-bottom: 1px solid #edf0ed;
@@ -200,18 +215,190 @@
             font-weight: 600;
         }
 
-        .empty-message {
-            color: #849188;
-            text-align: center;
-            padding: 22px;
-        }
-
         .footer {
             color: #87938b;
             font-size: 12px;
             text-align: center;
             padding: 25px 0 5px;
         }
+
+        /* CHATBOT FLOTANTE */
+
+        .chat-boton {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 1000;
+            background: #176b3a;
+            color: white;
+            border: 0;
+            border-radius: 50px;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 5px 20px #0003;
+        }
+
+        .chat-boton:hover {
+            background: #11542d;
+        }
+
+        .chat-ventana {
+            position: fixed;
+            right: 24px;
+            bottom: 90px;
+            width: min(370px, calc(100vw - 32px));
+            height: 480px;
+            max-height: calc(100vh - 115px);
+            z-index: 1000;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 35px #0003;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-ventana.abierto {
+            display: flex;
+        }
+
+        .chat-cabecera {
+            background: #176b3a;
+            color: white;
+            padding: 17px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-cerrar {
+            border: 0;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .chat-mensajes {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-mensaje {
+            padding: 12px;
+            border-radius: 12px;
+            line-height: 1.5;
+            font-size: 14px;
+            max-width: 90%;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .chat-mensaje.bot {
+            background: #eef4ef;
+            align-self: flex-start;
+        }
+
+        .chat-mensaje.usuario {
+            background: #d6eddd;
+            align-self: flex-end;
+        }
+
+        /* FORMATO DE RESPUESTAS DE GEMINI */
+
+        .chat-mensaje.bot.formateado {
+            white-space: normal;
+        }
+
+        .chat-mensaje.bot h1,
+        .chat-mensaje.bot h2,
+        .chat-mensaje.bot h3 {
+            margin: 12px 0 8px;
+            color: #176b3a;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .chat-mensaje.bot p {
+            margin-bottom: 10px;
+        }
+
+        .chat-mensaje.bot p:last-child {
+            margin-bottom: 0;
+        }
+
+        .chat-mensaje.bot ul,
+        .chat-mensaje.bot ol {
+            padding-left: 20px;
+            margin: 8px 0 12px;
+        }
+
+        .chat-mensaje.bot li {
+            margin-bottom: 6px;
+        }
+
+        .chat-mensaje.bot strong {
+            font-weight: 700;
+            color: #173d2b;
+        }
+
+        .chat-mensaje.bot a {
+            color: #176b3a;
+            overflow-wrap: anywhere;
+        }
+
+        .chat-mensaje.bot code {
+            background: #dce9df;
+            border-radius: 4px;
+            padding: 2px 4px;
+            overflow-wrap: anywhere;
+        }
+
+        .chat-mensaje.bot pre {
+            overflow-x: auto;
+            background: #e1eae3;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        /* FORMULARIO DEL CHAT */
+
+        .chat-formulario {
+            display: flex;
+            padding: 12px;
+            border-top: 1px solid #e5eae6;
+            gap: 8px;
+        }
+
+        .chat-formulario input {
+            flex: 1;
+            min-width: 0;
+            padding: 11px;
+            border: 1px solid #cbded1;
+            border-radius: 8px;
+        }
+
+        .chat-formulario button {
+            background: #176b3a;
+            color: white;
+            border: 0;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .chat-formulario button:disabled {
+            background: #91ad9a;
+            cursor: not-allowed;
+        }
+
+        /* DISEÑO RESPONSIVE */
 
         @media (max-width: 1050px) {
             .stats {
@@ -250,149 +437,501 @@
             .quick-actions {
                 grid-template-columns: 1fr;
             }
+
+            .chat-ventana {
+                right: 16px;
+                bottom: 82px;
+            }
+
+            .chat-boton {
+                right: 16px;
+                bottom: 16px;
+            }
         }
     </style>
 </head>
 
 <body>
-<div class="layout">
 
-    <aside class="sidebar">
-        <div class="brand">🐔 AviControl</div>
-        <div class="brand-description">Sistema de gestión avícola</div>
+    <div class="layout">
 
-        <nav class="menu">
-            <div class="menu-title">Principal</div>
-            <a th:href="@{/}" class="active">📊 Panel principal</a>
+        <!-- MENU LATERAL -->
 
-            <div class="menu-title">Administración</div>
-            <a th:href="@{/lotes}">🐥 Lotes</a>
-            <a th:href="@{/gastos}">💰 Gastos</a>
-            <a th:href="@{/ventas}">🛒 Ventas</a>
-            <a th:href="@{/clientes}">👥 Clientes</a>
-            <a th:href="@{/mortalidad}">📋 Mortalidad</a>
+        <aside class="sidebar">
 
-            <div class="menu-title">Consultas</div>
-            <a th:href="@{/reportes}">📈 Reportes</a>
-        </nav>
-    </aside>
+            <div class="brand">🐔 AviControl</div>
 
-    <main class="main">
-
-        <header class="topbar">
-            <div>
-                <h1>Panel principal</h1>
-                <p>Resumen general de tu negocio avícola.</p>
+            <div class="brand-description">
+                Sistema de gestión avícola
             </div>
 
-            <div class="user-label">
-                Administrador
-            </div>
-        </header>
+            <nav class="menu">
 
-        <!-- TARJETAS DEL DASHBOARD -->
-        <section class="stats">
+                <div class="menu-title">Principal</div>
 
-            <article class="stat-card">
-                <p class="stat-title">Pollos activos</p>
-                <h3 class="stat-value"
-                    th:text="${pollosActivos}">0</h3>
-                <p class="stat-note">Datos registrados del negocio</p>
-            </article>
+                <a th:href="@{/}" class="active">
+                    📊 Panel principal
+                </a>
 
-            <article class="stat-card">
-                <p class="stat-title">Total de gastos</p>
-                <h3 class="stat-value"
-                    th:text="${#numbers.formatDecimal(totalGastos, 0, 'COMMA', 0, 'POINT')}">$0</h3>
-                <p class="stat-note">Gastos registrados del negocio</p>
-            </article>
+                <div class="menu-title">Administración</div>
 
-            <article class="stat-card">
-                <p class="stat-title">Total de ventas</p>
-                <h3 class="stat-value"
-                    th:text="${#numbers.formatDecimal(totalVentas, 0, 'COMMA', 0, 'POINT')}">$0</h3>
-                <p class="stat-note">Ventas registradas del negocio</p>
-            </article>
+                <a th:href="@{/lotes}">
+                    🐥 Lotes
+                </a>
 
-            <article class="stat-card">
-                <p class="stat-title">Ganancia neta</p>
-                <h3 class="stat-value"
-                    th:text="${#numbers.formatDecimal(gananciaNeta, 0, 'COMMA', 0, 'POINT')}">$0</h3>
-                <p class="stat-note">Ventas menos costos y gastos</p>
-            </article>
+                <a th:href="@{/gastos}">
+                    💰 Gastos
+                </a>
 
-        </section>
+                <a th:href="@{/ventas}">
+                    🛒 Ventas
+                </a>
 
-        <section class="content-grid">
+                <a th:href="@{/clientes}">
+                    👥 Clientes
+                </a>
 
-            <article class="panel">
-                <h2>Accesos rápidos</h2>
-                <p class="panel-description">
-                    Ingresa directamente a los módulos principales de AviControl.
-                </p>
+                <a th:href="@{/mortalidad}">
+                    📋 Mortalidad
+                </a>
 
-                <div class="quick-actions" style="margin-top: 18px;">
-                    <a class="action-link" th:href="@{/lotes}">
-                        🐥 Administrar lotes
-                    </a>
+                <div class="menu-title">Consultas</div>
 
-                    <a class="action-link" th:href="@{/gastos}">
-                        💰 Registrar gastos
-                    </a>
+                <a th:href="@{/reportes}">
+                    📈 Reportes
+                </a>
 
-                    <a class="action-link" th:href="@{/ventas}">
-                        🛒 Registrar ventas
-                    </a>
+                <a th:href="@{/cuentas}">
+                    💳 Cuentas por cobrar
+                </a>
 
-                    <a class="action-link" th:href="@{/clientes}">
-                        👥 Administrar clientes
-                    </a>
+            </nav>
+
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+
+        <main class="main">
+
+            <header class="topbar">
+
+                <div>
+                    <h1>Panel principal</h1>
+                    <p>Resumen general de tu negocio avícola.</p>
                 </div>
-            </article>
 
-            <article class="panel">
-                <h2>Resumen del negocio</h2>
-                <p class="panel-description">
-                    Desde este panel puedes consultar los valores generales
-                    de los pollos, los gastos, las ventas y las ganancias
-                    registradas en la base de datos.
-                </p>
-            </article>
+                <div class="user-label">
+                    Administrador
+                </div>
 
-        </section>
+            </header>
 
-        <section class="panel">
-            <h2>Actividad reciente</h2>
+            <!-- TARJETAS DEL NEGOCIO -->
 
-            <div class="table-container">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Información</th>
-                        <th>Descripción</th>
-                    </tr>
-                    </thead>
+            <section class="stats">
 
-                    <tbody>
-                    <tr>
-                        <td>Base de datos</td>
-                        <td>Conectada a MySQL</td>
-                    </tr>
-                    <tr>
-                        <td>Sistema</td>
-                        <td>AviControl está disponible</td>
-                    </tr>
-                    </tbody>
-                </table>
+                <article class="stat-card">
+
+                    <p class="stat-title">Pollos activos</p>
+
+                    <h3 class="stat-value"
+                        th:text="${pollosActivos}">
+                        0
+                    </h3>
+
+                    <p class="stat-note">
+                        Datos registrados del negocio
+                    </p>
+
+                </article>
+
+                <article class="stat-card">
+
+                    <p class="stat-title">Total de gastos</p>
+
+                    <h3 class="stat-value"
+                        th:text="${#numbers.formatDecimal(totalGastos, 0, 'COMMA', 0, 'POINT')}">
+                        0
+                    </h3>
+
+                    <p class="stat-note">
+                        Gastos registrados del negocio
+                    </p>
+
+                </article>
+
+                <article class="stat-card">
+
+                    <p class="stat-title">Total de ventas</p>
+
+                    <h3 class="stat-value"
+                        th:text="${#numbers.formatDecimal(totalVentas, 0, 'COMMA', 0, 'POINT')}">
+                        0
+                    </h3>
+
+                    <p class="stat-note">
+                        Ventas registradas del negocio
+                    </p>
+
+                </article>
+
+                <article class="stat-card">
+
+                    <p class="stat-title">Ganancia neta</p>
+
+                    <h3 class="stat-value"
+                        th:text="${#numbers.formatDecimal(gananciaNeta, 0, 'COMMA', 0, 'POINT')}">
+                        0
+                    </h3>
+
+                    <p class="stat-note">
+                        Ventas menos costos y gastos
+                    </p>
+
+                </article>
+
+            </section>
+
+            <!-- ACCESOS RAPIDOS -->
+
+            <section class="content-grid">
+
+                <article class="panel">
+
+                    <h2>Accesos rápidos</h2>
+
+                    <p class="panel-description">
+                        Ingresa directamente a los módulos
+                        principales de AviControl.
+                    </p>
+
+                    <div class="quick-actions">
+
+                        <a class="action-link" th:href="@{/lotes}">
+                            🐥 Administrar lotes
+                        </a>
+
+                        <a class="action-link" th:href="@{/gastos}">
+                            💰 Registrar gastos
+                        </a>
+
+                        <a class="action-link" th:href="@{/ventas}">
+                            🛒 Registrar ventas
+                        </a>
+
+                        <a class="action-link" th:href="@{/clientes}">
+                            👥 Administrar clientes
+                        </a>
+
+                        <a class="action-link" th:href="@{/cuentas}">
+                            💳 Cuentas por cobrar
+                        </a>
+
+                        <a class="action-link" th:href="@{/mortalidad}">
+                            📋 Registrar mortalidad
+                        </a>
+
+                    </div>
+
+                </article>
+
+                <!-- RESUMEN DEL NEGOCIO -->
+
+                <article class="panel">
+
+                    <h2>Resumen del negocio</h2>
+
+                    <p class="panel-description">
+                        Desde este panel puedes consultar
+                        los valores generales de los pollos,
+                        los gastos, las ventas y las ganancias
+                        registradas en la base de datos.
+                    </p>
+
+                </article>
+
+            </section>
+
+            <!-- ACTIVIDAD RECIENTE -->
+
+            <section class="panel">
+
+                <h2>Actividad reciente</h2>
+
+                <div class="table-container">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Información</th>
+                                <th>Descripción</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td>Base de datos</td>
+                                <td>Conectada a MySQL</td>
+                            </tr>
+
+                            <tr>
+                                <td>Sistema</td>
+                                <td>AviControl está disponible</td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+            <footer class="footer">
+                AviControl - Sistema de gestión para
+                negocio de pollos de engorde
+            </footer>
+
+        </main>
+
+    </div>
+
+    <!-- BOTON FLOTANTE DEL CHATBOT -->
+
+    <button
+        type="button"
+        class="chat-boton"
+        id="chatBoton"
+        onclick="alternarChat()"
+        aria-controls="chatVentana"
+        aria-expanded="false">
+
+        💬 Asistente IA
+
+    </button>
+
+    <!-- VENTANA DEL CHATBOT -->
+
+    <section
+        class="chat-ventana"
+        id="chatVentana"
+        aria-label="Asistente avícola">
+
+        <div class="chat-cabecera">
+
+            <strong>🐔 Asistente Avícola IA</strong>
+
+            <button
+                type="button"
+                class="chat-cerrar"
+                onclick="alternarChat()"
+                aria-label="Cerrar chat">
+                ×
+            </button>
+
+        </div>
+
+        <div
+            class="chat-mensajes"
+            id="chatMensajes"
+            role="log"
+            aria-live="polite">
+
+            <div class="chat-mensaje bot">
+                ¡Hola! Soy el asistente de AviControl.
+                Pregúntame sobre alimentación, crecimiento,
+                manejo y cuidados de pollos de engorde.
             </div>
-        </section>
 
-        <footer class="footer">
-            AviControl - Sistema de gestión para negocio de pollos de engorde
-        </footer>
+        </div>
 
-    </main>
-</div>
+        <form
+            class="chat-formulario"
+            id="chatFormulario"
+            onsubmit="enviarPregunta(event)">
+
+            <input
+                id="chatPregunta"
+                type="text"
+                placeholder="Pregunta sobre tus pollos..."
+                maxlength="1500"
+                required
+                aria-label="Tu pregunta">
+
+            <button type="submit" id="chatEnviar">
+                Enviar
+            </button>
+
+        </form>
+
+    </section>
+
+    <!-- JAVASCRIPT DEL CHATBOT -->
+
+    <script>
+
+        // ABRIR Y CERRAR EL CHATBOT
+
+        function alternarChat() {
+
+            const ventana =
+                document.getElementById('chatVentana');
+
+            const abierto =
+                ventana.classList.toggle('abierto');
+
+            document.getElementById('chatBoton')
+                .setAttribute('aria-expanded', String(abierto));
+
+            if (abierto) {
+                document.getElementById('chatPregunta').focus();
+            }
+        }
+
+        // AGREGAR MENSAJES AL CHAT
+
+        function agregarMensaje(texto, clase) {
+
+            const elemento = document.createElement('div');
+
+            elemento.className = 'chat-mensaje ' + clase;
+
+            elemento.textContent = texto;
+
+            const contenedor =
+                document.getElementById('chatMensajes');
+
+            contenedor.appendChild(elemento);
+
+            contenedor.scrollTop =
+                contenedor.scrollHeight;
+
+            return elemento;
+        }
+
+        // MOSTRAR RESPUESTAS DE GEMINI CON FORMATO
+
+        function mostrarRespuestaIA(elemento, texto) {
+
+            // Si las bibliotecas no cargaron,
+            // mostrar el texto sin interpretar HTML.
+
+            if (
+                typeof marked === 'undefined' ||
+                typeof DOMPurify === 'undefined'
+            ) {
+                elemento.textContent = texto;
+                return;
+            }
+
+            try {
+
+                const html = marked.parse(texto);
+
+                const htmlSeguro = DOMPurify.sanitize(html);
+
+                elemento.innerHTML = htmlSeguro;
+
+                elemento.classList.add('formateado');
+
+            } catch (error) {
+
+                console.error(
+                    'Error al dar formato a la respuesta:',
+                    error
+                );
+
+                elemento.textContent = texto;
+            }
+
+            const contenedor =
+                document.getElementById('chatMensajes');
+
+            contenedor.scrollTop =
+                contenedor.scrollHeight;
+        }
+
+        // ENVIAR PREGUNTAS A GEMINI
+
+        async function enviarPregunta(evento) {
+
+            evento.preventDefault();
+
+            const campo =
+                document.getElementById('chatPregunta');
+
+            const boton =
+                document.getElementById('chatEnviar');
+
+            const pregunta = campo.value.trim();
+
+            if (!pregunta) {
+                return;
+            }
+
+            agregarMensaje(pregunta, 'usuario');
+
+            campo.value = '';
+
+            boton.disabled = true;
+
+            boton.textContent = 'Consultando...';
+
+            const mensajeEspera = agregarMensaje(
+                'Estoy preparando tu respuesta...',
+                'bot'
+            );
+
+            try {
+
+                const respuesta = await fetch('/api/chatbot', {
+
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+
+                    body: JSON.stringify({
+                        pregunta: pregunta
+                    })
+
+                });
+
+                const datos = await respuesta.json();
+
+                const textoRespuesta =
+                    datos.respuesta ||
+                    'No pude obtener una respuesta de Gemini.';
+
+                mostrarRespuestaIA(
+                    mensajeEspera,
+                    textoRespuesta
+                );
+
+            } catch (error) {
+
+                console.error(
+                    'Error al consultar Gemini:',
+                    error
+                );
+
+                mensajeEspera.textContent =
+                    'No pude conectar con el asistente. ' +
+                    'Verifica que AviControl esté funcionando.';
+
+            } finally {
+
+                boton.disabled = false;
+
+                boton.textContent = 'Enviar';
+
+                campo.focus();
+
+            }
+        }
+
+    </script>
+
 </body>
 </html>
-```

@@ -1,0 +1,809 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cuentas por cobrar | AviControl</title>
+
+    <link rel="stylesheet" th:href="@{/css/estilos.css}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f6f4;
+            color: #173d2b;
+        }
+
+        /* MENU HORIZONTAL IGUAL AL DE VENTAS */
+
+        .navegacion-avi {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 18px 28px;
+            background: #176b3a;
+            color: white;
+        }
+
+        .navegacion-marca {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .navegacion-marca strong {
+            font-size: 21px;
+        }
+
+        .navegacion-marca span {
+            font-size: 12px;
+            opacity: .85;
+        }
+
+        .navegacion-enlaces {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .navegacion-enlaces a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 13px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .navegacion-enlaces a:hover,
+        .navegacion-enlaces a.activo {
+            background: #ffffff26;
+        }
+
+        /* CONTENIDO */
+
+        .contenido {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+        }
+
+        .descripcion {
+            color: #718078;
+            margin-bottom: 25px;
+        }
+
+        .aviso {
+            background: #fff6e6;
+            color: #865800;
+            padding: 17px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        /* TARJETAS DE RESUMEN */
+
+        .tarjetas {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .tarjeta,
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, .04);
+        }
+
+        .tarjeta {
+            border-left: 5px solid #2f9358;
+        }
+
+        .tarjeta .titulo {
+            color: #718078;
+            margin-bottom: 12px;
+        }
+
+        .tarjeta .valor {
+            font-size: 27px;
+            font-weight: bold;
+            color: #073d2a;
+            overflow-wrap: anywhere;
+        }
+
+        /* PANEL DE HISTORIAL */
+
+        .panel h2 {
+            margin: 0 0 22px;
+        }
+
+        .filtros {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #d7e2da;
+            border-radius: 9px;
+            font-size: 14px;
+            background: white;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid #299456;
+        }
+
+        /* FILTROS DE ESTADO */
+
+        .opciones {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .opcion {
+            padding: 12px 20px;
+            border: 1px solid #cbded1;
+            border-radius: 9px;
+            background: white;
+            color: #24573a;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .opcion.activa {
+            background: #27864d;
+            color: white;
+            border-color: #27864d;
+        }
+
+        .resultado {
+            color: #718078;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        /* TABLA */
+
+        .tabla-contenedor {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1000px;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 15px 12px;
+            border-bottom: 1px solid #e8eeea;
+            font-size: 14px;
+        }
+
+        th {
+            background: #edf5ef;
+            color: #176b3a;
+            white-space: nowrap;
+        }
+
+        .cliente {
+            font-weight: bold;
+        }
+
+        .dinero {
+            white-space: nowrap;
+        }
+
+        .saldo {
+            color: #bd6b00;
+            font-weight: bold;
+        }
+
+        /* ESTADOS DE PAGO */
+
+        .estado {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .pagada {
+            background: #dcf5e4;
+            color: #16713b;
+        }
+
+        .abonada {
+            background: #fff0d6;
+            color: #a76500;
+        }
+
+        .pendiente {
+            background: #ffe6e6;
+            color: #ae3838;
+        }
+
+        /* REGISTRAR ABONOS */
+
+        .form-abono {
+            display: flex;
+            gap: 8px;
+        }
+
+        .form-abono input {
+            width: 120px;
+            min-width: 120px;
+            padding: 10px;
+        }
+
+        .btn-abonar {
+            background: #27864d;
+            color: white;
+            border: none;
+            padding: 11px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-abonar:hover {
+            background: #196e3b;
+        }
+
+        /* MENSAJES */
+
+        .mensaje {
+            padding: 14px;
+            border-radius: 9px;
+            margin-bottom: 20px;
+        }
+
+        .exito {
+            background: #e2f7e8;
+            color: #146b35;
+        }
+
+        .error {
+            background: #ffe5e5;
+            color: #a52323;
+        }
+
+        .vacio {
+            text-align: center;
+            color: #718078;
+            padding: 25px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #6b776e;
+        }
+
+        /* DISEÑO RESPONSIVE */
+
+        @media (max-width: 1000px) {
+            .tarjetas,
+            .filtros {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .navegacion-avi {
+                padding: 16px;
+            }
+
+            .navegacion-enlaces {
+                width: 100%;
+            }
+
+            .contenido {
+                padding: 12px;
+            }
+
+            .tarjeta,
+            .panel {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- MENU HORIZONTAL -->
+
+    <header class="navegacion-avi">
+
+        <div class="navegacion-marca">
+            <strong>🐔 AviControl</strong>
+            <span>Gestión avícola</span>
+        </div>
+
+        <nav class="navegacion-enlaces"
+             aria-label="Navegación principal">
+
+            <a th:href="@{/}">Inicio</a>
+            <a th:href="@{/lotes}">Lotes</a>
+            <a th:href="@{/gastos}">Gastos</a>
+            <a th:href="@{/ventas}">Ventas</a>
+            <a th:href="@{/clientes}">Clientes</a>
+            <a th:href="@{/cuentas}" class="activo">
+                Cuentas por cobrar
+            </a>
+
+        </nav>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+
+    <main class="contenido">
+
+        <h1>💳 Cuentas por cobrar</h1>
+
+        <p class="descripcion">
+            Consulta todas las ventas, los pagos registrados
+            y los saldos pendientes de tus clientes.
+        </p>
+
+        <div class="aviso">
+            <strong>Importante:</strong>
+            Los estados se calculan según los pagos registrados
+            en AviControl. Una venta antigua puede aparecer
+            pendiente aunque ya la hayas cobrado fuera del sistema.
+        </div>
+
+        <!-- MENSAJES -->
+
+        <div class="mensaje exito"
+             th:if="${mensajeExito != null}"
+             th:text="${mensajeExito}">
+        </div>
+
+        <div class="mensaje error"
+             th:if="${mensajeError != null}"
+             th:text="${mensajeError}">
+        </div>
+
+        <!-- TARJETAS -->
+
+        <section class="tarjetas">
+
+            <div class="tarjeta">
+                <div class="titulo">Total vendido</div>
+
+                <div class="valor"
+                     th:text="|$${#numbers.formatDecimal(totalVendido,1,'COMMA',0,'POINT')}|">
+                    $0
+                </div>
+            </div>
+
+            <div class="tarjeta">
+                <div class="titulo">Pagos registrados</div>
+
+                <div class="valor"
+                     th:text="|$${#numbers.formatDecimal(totalRecibido,1,'COMMA',0,'POINT')}|">
+                    $0
+                </div>
+            </div>
+
+            <div class="tarjeta">
+                <div class="titulo">Saldo sin pagos registrados</div>
+
+                <div class="valor"
+                     th:text="|$${#numbers.formatDecimal(pendiente,1,'COMMA',0,'POINT')}|">
+                    $0
+                </div>
+            </div>
+
+        </section>
+
+        <!-- HISTORIAL DE VENTAS Y COBROS -->
+
+        <section class="panel">
+
+            <h2>Historial de ventas y cobros</h2>
+
+            <!-- FILTROS -->
+
+            <div class="filtros">
+
+                <div>
+                    <label for="buscarCliente">
+                        Buscar cliente
+                    </label>
+
+                    <input type="search"
+                           id="buscarCliente"
+                           placeholder="Escribe el nombre del cliente..."
+                           oninput="filtrarVentas()">
+                </div>
+
+                <div>
+                    <label for="filtroLote">
+                        Filtrar por lote
+                    </label>
+
+                    <select id="filtroLote"
+                            onchange="filtrarVentas()">
+
+                        <option value="">
+                            Todos los lotes
+                        </option>
+
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- BOTONES DE FILTRO -->
+
+            <div class="opciones">
+
+                <button type="button"
+                        class="opcion activa"
+                        data-filtro="todas"
+                        onclick="cambiarEstado('todas')">
+                    📋 Todas las ventas
+                </button>
+
+                <button type="button"
+                        class="opcion"
+                        data-filtro="pendientes"
+                        onclick="cambiarEstado('pendientes')">
+                    ⏳ Pendientes
+                </button>
+
+                <button type="button"
+                        class="opcion"
+                        data-filtro="pagadas"
+                        onclick="cambiarEstado('pagadas')">
+                    ✅ Pagadas
+                </button>
+
+            </div>
+
+            <p class="resultado" id="resultadoBusqueda"></p>
+
+            <!-- TABLA -->
+
+            <div class="tabla-contenedor">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Lote</th>
+                            <th>Total venta</th>
+                            <th>Abonado</th>
+                            <th>Saldo pendiente</th>
+                            <th>Estado</th>
+                            <th>Registrar abono</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tablaVentas">
+
+                        <tr class="fila-venta"
+                            th:each="venta : ${ventas}"
+                            th:with="
+                                abonado=${pagosPorVenta[venta.id]},
+                                saldo=${venta.totalVenta.subtract(pagosPorVenta[venta.id])}"
+                            th:attr="
+                                data-cliente=${venta.cliente != null ? venta.cliente.nombre : 'Sin cliente'},
+                                data-lote=${venta.lote != null ? venta.lote.codigo : ''},
+                                data-estado=${saldo.signum() <= 0 ? 'pagadas' : 'pendientes'}">
+
+                            <!-- FECHA -->
+
+                            <td th:text="${venta.fecha != null ? #temporals.format(venta.fecha,'dd/MM/yyyy') : '-'}">
+                                -
+                            </td>
+
+                            <!-- CLIENTE -->
+
+                            <td class="cliente"
+                                th:text="${venta.cliente != null ? venta.cliente.nombre : 'Sin cliente'}">
+                                Cliente
+                            </td>
+
+                            <!-- LOTE -->
+
+                            <td th:text="${venta.lote != null ? venta.lote.codigo : '-'}">
+                                Lote
+                            </td>
+
+                            <!-- TOTAL DE VENTA -->
+
+                            <td class="dinero"
+                                th:text="|$${#numbers.formatDecimal(venta.totalVenta,1,'COMMA',0,'POINT')}|">
+                                $0
+                            </td>
+
+                            <!-- TOTAL ABONADO -->
+
+                            <td class="dinero"
+                                th:text="|$${#numbers.formatDecimal(abonado,1,'COMMA',0,'POINT')}|">
+                                $0
+                            </td>
+
+                            <!-- SALDO PENDIENTE -->
+
+                            <td class="dinero"
+                                th:classappend="${saldo.signum() > 0} ? 'saldo' : ''"
+                                th:text="|$${#numbers.formatDecimal(saldo,1,'COMMA',0,'POINT')}|">
+                                $0
+                            </td>
+
+                            <!-- ESTADO -->
+
+                            <td>
+
+                                <span class="estado pagada"
+                                      th:if="${saldo.signum() <= 0}">
+                                    Pagada
+                                </span>
+
+                                <span class="estado abonada"
+                                      th:if="${saldo.signum() > 0 and abonado.signum() > 0}">
+                                    Abonada
+                                </span>
+
+                                <span class="estado pendiente"
+                                      th:if="${saldo.signum() > 0 and abonado.signum() <= 0}">
+                                    Pendiente
+                                </span>
+
+                            </td>
+
+                            <!-- REGISTRAR ABONO -->
+
+                            <td>
+
+                                <form class="form-abono"
+                                      th:if="${saldo.signum() > 0}"
+                                      th:action="@{/pagos/guardar}"
+                                      method="post"
+                                      onsubmit="return confirmarAbono(this)">
+
+                                    <input type="hidden"
+                                           name="ventaId"
+                                           th:value="${venta.id}">
+
+                                    <input type="number"
+                                           name="valor"
+                                           min="0.01"
+                                           step="0.01"
+                                           th:max="${saldo}"
+                                           placeholder="Valor $"
+                                           required>
+
+                                    <button type="submit"
+                                            class="btn-abonar">
+                                        Abonar
+                                    </button>
+
+                                </form>
+
+                                <span th:if="${saldo.signum() <= 0}">
+                                    ✅ Pago completo
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+                <div class="vacio"
+                     id="sinResultados"
+                     style="display:none">
+                    No se encontraron ventas con esos filtros.
+                </div>
+
+                <div class="vacio"
+                     th:if="${#lists.isEmpty(ventas)}">
+                    No hay ventas registradas en AviControl.
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer>
+        AviControl · Gestión de pollos de engorde
+    </footer>
+
+    <script>
+        let filtroEstado = "todas";
+
+        // NORMALIZAR TEXTO
+
+        function normalizarTexto(texto) {
+            return String(texto || "")
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .trim();
+        }
+
+        // CAMBIAR FILTRO
+
+        function cambiarEstado(estado) {
+            filtroEstado = estado;
+
+            document.querySelectorAll(".opcion").forEach(function(boton) {
+                boton.classList.toggle(
+                    "activa",
+                    boton.dataset.filtro === estado
+                );
+            });
+
+            filtrarVentas();
+        }
+
+        // CARGAR LOTES
+
+        function cargarLotes() {
+            const selector = document.getElementById("filtroLote");
+            const lotes = new Set();
+
+            document.querySelectorAll(".fila-venta").forEach(function(fila) {
+                const lote = fila.dataset.lote || "";
+
+                if (lote) {
+                    lotes.add(lote);
+                }
+            });
+
+            Array.from(lotes).sort().forEach(function(lote) {
+                const opcion = document.createElement("option");
+
+                opcion.value = lote;
+                opcion.textContent = "Lote " + lote;
+
+                selector.appendChild(opcion);
+            });
+        }
+
+        // FILTRAR VENTAS
+
+        function filtrarVentas() {
+            const nombre = normalizarTexto(
+                document.getElementById("buscarCliente").value
+            );
+
+            const loteSeleccionado =
+                document.getElementById("filtroLote").value;
+
+            const filas =
+                document.querySelectorAll(".fila-venta");
+
+            let encontrados = 0;
+
+            filas.forEach(function(fila) {
+                const cliente = normalizarTexto(fila.dataset.cliente);
+                const lote = fila.dataset.lote || "";
+                const estado = fila.dataset.estado || "";
+
+                const coincideNombre = cliente.includes(nombre);
+
+                const coincideLote =
+                    loteSeleccionado === "" ||
+                    lote === loteSeleccionado;
+
+                const coincideEstado =
+                    filtroEstado === "todas" ||
+                    estado === filtroEstado;
+
+                const mostrar =
+                    coincideNombre &&
+                    coincideLote &&
+                    coincideEstado;
+
+                fila.style.display = mostrar ? "" : "none";
+
+                if (mostrar) {
+                    encontrados++;
+                }
+            });
+
+            document.getElementById("resultadoBusqueda").textContent =
+                encontrados +
+                (encontrados === 1
+                    ? " venta encontrada"
+                    : " ventas encontradas");
+
+            document.getElementById("sinResultados").style.display =
+                filas.length > 0 && encontrados === 0
+                    ? "block"
+                    : "none";
+        }
+
+        // CONFIRMAR ABONO
+
+        function confirmarAbono(formulario) {
+            const campo = formulario.querySelector(
+                'input[name="valor"]'
+            );
+
+            const valor = Number(campo.value);
+            const maximo = Number(campo.max);
+
+            if (!Number.isFinite(valor) || valor <= 0) {
+                alert("Ingresa un abono válido.");
+                return false;
+            }
+
+            if (campo.max !== "" && valor > maximo) {
+                alert("El abono supera el saldo pendiente.");
+                return false;
+            }
+
+            const cliente = formulario.closest("tr")
+                .querySelector(".cliente")
+                .textContent.trim();
+
+            return confirm(
+                "¿Confirmas que recibiste $" +
+                valor.toLocaleString("es-CO") +
+                " del cliente " +
+                cliente +
+                "?"
+            );
+        }
+
+        // INICIAR
+
+        document.addEventListener("DOMContentLoaded", function() {
+            cargarLotes();
+            filtrarVentas();
+        });
+    </script>
+
+</body>
+</html>

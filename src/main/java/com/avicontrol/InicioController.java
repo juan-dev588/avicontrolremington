@@ -1,3 +1,4 @@
+
 package com.avicontrol;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -15,6 +16,9 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 @Controller
@@ -82,7 +86,9 @@ public class InicioController {
 
                     int muertos = mortalidades.stream()
                             .filter(m -> m.getLote() != null
-                                    && Objects.equals(m.getLote().getId(), lote.getId()))
+                                    && Objects.equals(
+                                            m.getLote().getId(),
+                                            lote.getId()))
                             .map(Mortalidad::getCantidad)
                             .filter(Objects::nonNull)
                             .mapToInt(Integer::intValue)
@@ -90,7 +96,9 @@ public class InicioController {
 
                     int vendidos = ventas.stream()
                             .filter(v -> v.getLote() != null
-                                    && Objects.equals(v.getLote().getId(), lote.getId()))
+                                    && Objects.equals(
+                                            v.getLote().getId(),
+                                            lote.getId()))
                             .map(Venta::getCantidadPollos)
                             .filter(Objects::nonNull)
                             .mapToInt(Integer::intValue)
@@ -124,15 +132,19 @@ public class InicioController {
 
         try {
             loteRepository.save(nuevoLote);
+
             redirectAttributes.addFlashAttribute(
-                    "mensajeExito", "¡Lote registrado correctamente!");
+                    "mensajeExito",
+                    "¡Lote registrado correctamente!");
 
         } catch (DataIntegrityViolationException e) {
+
             redirectAttributes.addFlashAttribute(
                     "mensajeError",
                     "No se pudo guardar. Verifica que el código no esté repetido y que los datos sean correctos.");
 
         } catch (Exception e) {
+
             redirectAttributes.addFlashAttribute(
                     "mensajeError",
                     "Ocurrió un error al guardar el lote.");
@@ -154,7 +166,8 @@ public class InicioController {
                 })
                 .orElseGet(() -> {
                     redirectAttributes.addFlashAttribute(
-                            "mensajeError", "El lote solicitado no existe.");
+                            "mensajeError",
+                            "El lote solicitado no existe.");
                     return "redirect:/lotes";
                 });
     }
@@ -184,15 +197,20 @@ public class InicioController {
             loteRepository.save(lote);
 
             redirectAttributes.addFlashAttribute(
-                    "mensajeExito", "Lote actualizado correctamente.");
+                    "mensajeExito",
+                    "Lote actualizado correctamente.");
 
         } catch (DataIntegrityViolationException e) {
+
             redirectAttributes.addFlashAttribute(
-                    "mensajeError", "Revisa si el código del lote ya existe.");
+                    "mensajeError",
+                    "Revisa si el código del lote ya existe.");
 
         } catch (Exception e) {
+
             redirectAttributes.addFlashAttribute(
-                    "mensajeError", "No se pudo actualizar el lote.");
+                    "mensajeError",
+                    "No se pudo actualizar el lote.");
         }
 
         return "redirect:/lotes";
@@ -206,23 +224,28 @@ public class InicioController {
         try {
             if (!loteRepository.existsById(id)) {
                 redirectAttributes.addFlashAttribute(
-                        "mensajeError", "El lote no existe.");
+                        "mensajeError",
+                        "El lote no existe.");
                 return "redirect:/lotes";
             }
 
             loteRepository.deleteById(id);
 
             redirectAttributes.addFlashAttribute(
-                    "mensajeExito", "Lote eliminado correctamente.");
+                    "mensajeExito",
+                    "Lote eliminado correctamente.");
 
         } catch (DataIntegrityViolationException e) {
+
             redirectAttributes.addFlashAttribute(
                     "mensajeError",
                     "No se puede eliminar este lote porque tiene registros relacionados.");
 
         } catch (Exception e) {
+
             redirectAttributes.addFlashAttribute(
-                    "mensajeError", "No se pudo eliminar el lote.");
+                    "mensajeError",
+                    "No se pudo eliminar el lote.");
         }
 
         return "redirect:/lotes";
@@ -235,17 +258,22 @@ public class InicioController {
 
         return loteRepository.findById(id)
                 .map(lote -> {
+
                     lote.setEstado("Finalizado");
                     loteRepository.save(lote);
 
                     redirectAttributes.addFlashAttribute(
-                            "mensajeExito", "Lote finalizado correctamente.");
+                            "mensajeExito",
+                            "Lote finalizado correctamente.");
 
                     return "redirect:/lotes";
                 })
                 .orElseGet(() -> {
+
                     redirectAttributes.addFlashAttribute(
-                            "mensajeError", "El lote no existe.");
+                            "mensajeError",
+                            "El lote no existe.");
+
                     return "redirect:/lotes";
                 });
     }
@@ -262,14 +290,22 @@ public class InicioController {
 
         if (lote == null) {
             redirectAttributes.addFlashAttribute(
-                    "mensajeError", "El lote no existe.");
+                    "mensajeError",
+                    "El lote no existe.");
             return "redirect:/lotes";
         }
 
-        List<Gasto> gastos = gastoRepository.findByLoteIdOrderByFechaDesc(id);
-        List<Venta> ventas = ventaRepository.findByLoteIdOrderByFechaDesc(id);
-        List<Mortalidad> mortalidades = mortalidadRepository.findByLoteId(id);
-        List<Pago> pagos = pagoRepository.findByVentaLoteId(id);
+        List<Gasto> gastos =
+                gastoRepository.findByLoteIdOrderByFechaDesc(id);
+
+        List<Venta> ventas =
+                ventaRepository.findByLoteIdOrderByFechaDesc(id);
+
+        List<Mortalidad> mortalidades =
+                mortalidadRepository.findByLoteId(id);
+
+        List<Pago> pagos =
+                pagoRepository.findByVentaLoteId(id);
 
         BigDecimal totalGastos = gastos.stream()
                 .map(Gasto::getValor)
@@ -280,7 +316,8 @@ public class InicioController {
                 ? BigDecimal.ZERO
                 : BigDecimal.valueOf(lote.getCostoPollitos());
 
-        BigDecimal inversionTotal = costoPollitos.add(totalGastos);
+        BigDecimal inversionTotal =
+                costoPollitos.add(totalGastos);
 
         BigDecimal totalVentas = ventas.stream()
                 .map(Venta::getTotalVenta)
@@ -292,9 +329,11 @@ public class InicioController {
                 .filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal pendienteCobrar = totalVentas.subtract(totalRecibido);
+        BigDecimal pendienteCobrar =
+                totalVentas.subtract(totalRecibido);
 
-        BigDecimal ganancia = totalVentas.subtract(inversionTotal);
+        BigDecimal ganancia =
+                totalVentas.subtract(inversionTotal);
 
         int pollosMuertos = mortalidades.stream()
                 .map(Mortalidad::getCantidad)
@@ -309,11 +348,12 @@ public class InicioController {
                 .sum();
 
         int pollosIniciales = lote.getCantidadInicial() == null
-                ? 0
-                : lote.getCantidadInicial();
+                ? 0 : lote.getCantidadInicial();
 
         int pollosDisponibles = Math.max(
-                0, pollosIniciales - pollosMuertos - pollosVendidos);
+                0,
+                pollosIniciales - pollosMuertos - pollosVendidos
+        );
 
         model.addAttribute("lote", lote);
         model.addAttribute("gastos", gastos);
@@ -355,10 +395,13 @@ public class InicioController {
         List<Gasto> gastosFiltrados = todosLosGastos.stream()
                 .filter(gasto -> loteId == null
                         || (gasto.getLote() != null
-                        && Objects.equals(gasto.getLote().getId(), loteId)))
+                        && Objects.equals(
+                                gasto.getLote().getId(),
+                                loteId)))
                 .sorted(Comparator.comparing(
                         Gasto::getFecha,
-                        Comparator.nullsLast(Comparator.reverseOrder())))
+                        Comparator.nullsLast(
+                                Comparator.reverseOrder())))
                 .collect(Collectors.toList());
 
         BigDecimal totalSeleccionado = gastosFiltrados.stream()
@@ -390,7 +433,8 @@ public class InicioController {
 
             if (lote == null) {
                 redirectAttributes.addFlashAttribute(
-                        "mensajeError", "Selecciona un lote válido.");
+                        "mensajeError",
+                        "Selecciona un lote válido.");
                 return "redirect:/gastos";
             }
 
@@ -399,12 +443,14 @@ public class InicioController {
                     || nuevoGasto.getDescripcion() == null
                     || nuevoGasto.getDescripcion().isBlank()
                     || nuevoGasto.getValor() == null
-                    || nuevoGasto.getValor().compareTo(BigDecimal.ZERO) <= 0
+                    || nuevoGasto.getValor()
+                            .compareTo(BigDecimal.ZERO) <= 0
                     || nuevoGasto.getFecha() == null) {
 
                 redirectAttributes.addFlashAttribute(
                         "mensajeError",
                         "Completa los campos obligatorios y registra un valor mayor que cero.");
+
                 return "redirect:/gastos";
             }
 
@@ -412,11 +458,14 @@ public class InicioController {
             gastoRepository.save(nuevoGasto);
 
             redirectAttributes.addFlashAttribute(
-                    "mensajeExito", "Gasto registrado correctamente.");
+                    "mensajeExito",
+                    "Gasto registrado correctamente.");
 
         } catch (Exception e) {
+
             redirectAttributes.addFlashAttribute(
-                    "mensajeError", "Ocurrió un error al registrar el gasto.");
+                    "mensajeError",
+                    "Ocurrió un error al registrar el gasto.");
         }
 
         return "redirect:/gastos";
@@ -435,10 +484,13 @@ public class InicioController {
         List<Venta> ventasFiltradas = todasLasVentas.stream()
                 .filter(venta -> loteId == null
                         || (venta.getLote() != null
-                        && Objects.equals(venta.getLote().getId(), loteId)))
+                        && Objects.equals(
+                                venta.getLote().getId(),
+                                loteId)))
                 .sorted(Comparator.comparing(
                         Venta::getFecha,
-                        Comparator.nullsLast(Comparator.reverseOrder())))
+                        Comparator.nullsLast(
+                                Comparator.reverseOrder())))
                 .collect(Collectors.toList());
 
         BigDecimal totalGeneral = todasLasVentas.stream()
@@ -481,42 +533,53 @@ public class InicioController {
 
             if (lote == null) {
                 redirectAttributes.addFlashAttribute(
-                        "mensajeError", "Selecciona un lote válido.");
+                        "mensajeError",
+                        "Selecciona un lote válido.");
                 return "redirect:/ventas";
             }
 
             if (nuevaVenta.getCantidadPollos() == null
                     || nuevaVenta.getCantidadPollos() <= 0
                     || nuevaVenta.getPesoTotal() == null
-                    || nuevaVenta.getPesoTotal().compareTo(BigDecimal.ZERO) <= 0
+                    || nuevaVenta.getPesoTotal()
+                            .compareTo(BigDecimal.ZERO) <= 0
                     || nuevaVenta.getPrecioPorKilo() == null
-                    || nuevaVenta.getPrecioPorKilo().compareTo(BigDecimal.ZERO) <= 0
+                    || nuevaVenta.getPrecioPorKilo()
+                            .compareTo(BigDecimal.ZERO) <= 0
                     || nuevaVenta.getFecha() == null) {
 
                 redirectAttributes.addFlashAttribute(
                         "mensajeError",
                         "Verifica la cantidad de pollos, el peso total, el precio por kilo y la fecha.");
+
                 return "redirect:/ventas";
             }
 
             BigDecimal total = nuevaVenta.getPesoTotal()
                     .multiply(nuevaVenta.getPrecioPorKilo())
-                    .setScale(2, java.math.RoundingMode.HALF_UP);
+                    .setScale(
+                            2,
+                            java.math.RoundingMode.HALF_UP
+                    );
 
             nuevaVenta.setTotalVenta(total);
             nuevaVenta.setLote(lote);
 
             if (clienteId != null) {
-                Cliente cliente = clienteRepository.findById(clienteId)
+
+                Cliente cliente = clienteRepository
+                        .findById(clienteId)
                         .orElse(null);
 
                 if (cliente == null) {
                     redirectAttributes.addFlashAttribute(
-                            "mensajeError", "El cliente seleccionado no existe.");
+                            "mensajeError",
+                            "El cliente seleccionado no existe.");
                     return "redirect:/ventas";
                 }
 
                 nuevaVenta.setCliente(cliente);
+
             } else {
                 nuevaVenta.setCliente(null);
             }
@@ -524,11 +587,14 @@ public class InicioController {
             ventaRepository.save(nuevaVenta);
 
             redirectAttributes.addFlashAttribute(
-                    "mensajeExito", "Venta registrada correctamente.");
+                    "mensajeExito",
+                    "Venta registrada correctamente.");
 
         } catch (Exception e) {
+
             redirectAttributes.addFlashAttribute(
-                    "mensajeError", "Ocurrió un error al registrar la venta.");
+                    "mensajeError",
+                    "Ocurrió un error al registrar la venta.");
         }
 
         return "redirect:/ventas";
@@ -539,46 +605,77 @@ public class InicioController {
     @GetMapping("/cuentas")
     public String cuentas(Model model) {
 
-        List<Venta> ventas = ventaRepository.findAllByOrderByFechaDesc();
+        List<Venta> ventas =
+                ventaRepository.findAllByOrderByFechaDesc();
 
-        List<Venta> ventasPendientes = ventas.stream()
-                .filter(venta -> {
-                    BigDecimal recibido = pagoRepository
-                            .findByVentaId(venta.getId())
-                            .stream()
-                            .map(Pago::getValor)
-                            .filter(Objects::nonNull)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        Map<Long, BigDecimal> pagosPorVenta =
+                new HashMap<>();
 
-                    return venta.getTotalVenta() != null
-                            && venta.getTotalVenta().compareTo(recibido) > 0;
-                })
-                .collect(Collectors.toList());
+        List<Venta> ventasPendientes =
+                new ArrayList<>();
 
-        BigDecimal totalVendido = ventas.stream()
-                .map(Venta::getTotalVenta)
-                .filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
+        BigDecimal totalVendido = BigDecimal.ZERO;
         BigDecimal totalRecibido = BigDecimal.ZERO;
 
         for (Venta venta : ventas) {
+
+            BigDecimal totalVenta = venta.getTotalVenta() == null
+                    ? BigDecimal.ZERO
+                    : venta.getTotalVenta();
+
             BigDecimal recibido = pagoRepository
                     .findByVentaId(venta.getId())
                     .stream()
                     .map(Pago::getValor)
                     .filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .reduce(
+                            BigDecimal.ZERO,
+                            BigDecimal::add
+                    );
 
+            pagosPorVenta.put(
+                    venta.getId(),
+                    recibido
+            );
+
+            totalVendido = totalVendido.add(totalVenta);
             totalRecibido = totalRecibido.add(recibido);
+
+            if (totalVenta.compareTo(recibido) > 0) {
+                ventasPendientes.add(venta);
+            }
         }
 
-        BigDecimal pendiente = totalVendido.subtract(totalRecibido);
+        BigDecimal pendiente =
+                totalVendido.subtract(totalRecibido);
 
-        model.addAttribute("ventasPendientes", ventasPendientes);
-        model.addAttribute("totalVendido", totalVendido);
-        model.addAttribute("totalRecibido", totalRecibido);
-        model.addAttribute("pendiente", pendiente);
+        // Todas las ventas: pagadas, abonadas y pendientes.
+        model.addAttribute("ventas", ventas);
+
+        model.addAttribute(
+                "ventasPendientes",
+                ventasPendientes
+        );
+
+        model.addAttribute(
+                "pagosPorVenta",
+                pagosPorVenta
+        );
+
+        model.addAttribute(
+                "totalVendido",
+                totalVendido
+        );
+
+        model.addAttribute(
+                "totalRecibido",
+                totalRecibido
+        );
+
+        model.addAttribute(
+                "pendiente",
+                pendiente
+        );
 
         return "cuentas";
     }
@@ -592,32 +689,45 @@ public class InicioController {
             RedirectAttributes redirectAttributes) {
 
         try {
-            Venta venta = ventaRepository.findById(ventaId).orElse(null);
+            Venta venta = ventaRepository
+                    .findById(ventaId)
+                    .orElse(null);
 
             if (venta == null) {
                 redirectAttributes.addFlashAttribute(
-                        "mensajeError", "La venta no existe.");
+                        "mensajeError",
+                        "La venta no existe.");
                 return "redirect:/cuentas";
             }
 
-            if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
+            if (valor == null
+                    || valor.compareTo(BigDecimal.ZERO) <= 0) {
+
                 redirectAttributes.addFlashAttribute(
-                        "mensajeError", "El abono debe ser mayor que cero.");
+                        "mensajeError",
+                        "El abono debe ser mayor que cero.");
                 return "redirect:/cuentas";
             }
 
-            BigDecimal recibido = pagoRepository.findByVentaId(ventaId)
+            BigDecimal recibido = pagoRepository
+                    .findByVentaId(ventaId)
                     .stream()
                     .map(Pago::getValor)
                     .filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .reduce(
+                            BigDecimal.ZERO,
+                            BigDecimal::add
+                    );
 
-            BigDecimal pendiente = venta.getTotalVenta().subtract(recibido);
+            BigDecimal pendiente =
+                    venta.getTotalVenta().subtract(recibido);
 
             if (valor.compareTo(pendiente) > 0) {
+
                 redirectAttributes.addFlashAttribute(
                         "mensajeError",
                         "El abono supera el saldo pendiente de esta venta.");
+
                 return "redirect:/cuentas";
             }
 
@@ -629,11 +739,14 @@ public class InicioController {
             pagoRepository.save(pago);
 
             redirectAttributes.addFlashAttribute(
-                    "mensajeExito", "Abono registrado correctamente.");
+                    "mensajeExito",
+                    "Abono registrado correctamente.");
 
         } catch (Exception e) {
+
             redirectAttributes.addFlashAttribute(
-                    "mensajeError", "No se pudo registrar el abono.");
+                    "mensajeError",
+                    "No se pudo registrar el abono.");
         }
 
         return "redirect:/cuentas";
@@ -648,14 +761,18 @@ public class InicioController {
 
         List<Lote> lotes = loteRepository.findAll();
 
-        List<Mortalidad> registros = mortalidadRepository.findAll()
+        List<Mortalidad> registros = mortalidadRepository
+                .findAll()
                 .stream()
                 .filter(m -> loteId == null
                         || (m.getLote() != null
-                        && Objects.equals(m.getLote().getId(), loteId)))
+                        && Objects.equals(
+                                m.getLote().getId(),
+                                loteId)))
                 .sorted(Comparator.comparing(
                         Mortalidad::getFecha,
-                        Comparator.nullsLast(Comparator.reverseOrder())))
+                        Comparator.nullsLast(
+                                Comparator.reverseOrder())))
                 .collect(Collectors.toList());
 
         Mortalidad nuevoRegistro = new Mortalidad();
@@ -683,11 +800,14 @@ public class InicioController {
             RedirectAttributes redirectAttributes) {
 
         try {
-            Lote lote = loteRepository.findById(loteId).orElse(null);
+            Lote lote = loteRepository
+                    .findById(loteId)
+                    .orElse(null);
 
             if (lote == null) {
                 redirectAttributes.addFlashAttribute(
-                        "mensajeError", "Selecciona un lote válido.");
+                        "mensajeError",
+                        "Selecciona un lote válido.");
                 return "redirect:/mortalidad";
             }
 
@@ -698,6 +818,7 @@ public class InicioController {
                 redirectAttributes.addFlashAttribute(
                         "mensajeError",
                         "Registra una cantidad mayor que cero y una fecha válida.");
+
                 return "redirect:/mortalidad";
             }
 
@@ -705,11 +826,14 @@ public class InicioController {
             mortalidadRepository.save(nuevoRegistro);
 
             redirectAttributes.addFlashAttribute(
-                    "mensajeExito", "Mortalidad registrada correctamente.");
+                    "mensajeExito",
+                    "Mortalidad registrada correctamente.");
 
         } catch (Exception e) {
+
             redirectAttributes.addFlashAttribute(
-                    "mensajeError", "No se pudo registrar la mortalidad.");
+                    "mensajeError",
+                    "No se pudo registrar la mortalidad.");
         }
 
         return "redirect:/mortalidad";
@@ -722,22 +846,38 @@ public class InicioController {
             @RequestParam(required = false) String buscar,
             Model model) {
 
-        List<Cliente> todosLosClientes = clienteRepository.findAll();
+        List<Cliente> todosLosClientes =
+                clienteRepository.findAll();
 
-        List<Cliente> clientesFiltrados = todosLosClientes.stream()
-                .filter(cliente -> buscar == null || buscar.isBlank()
-                        || (cliente.getNombre() != null
-                        && cliente.getNombre().toLowerCase()
-                        .contains(buscar.trim().toLowerCase()))
-                        || (cliente.getTelefono() != null
-                        && cliente.getTelefono().contains(buscar.trim())))
-                .sorted(Comparator.comparing(
-                        Cliente::getNombre,
-                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
-                .collect(Collectors.toList());
+        List<Cliente> clientesFiltrados =
+                todosLosClientes.stream()
+                        .filter(cliente ->
+                                buscar == null
+                                || buscar.isBlank()
+                                || (cliente.getNombre() != null
+                                && cliente.getNombre()
+                                        .toLowerCase()
+                                        .contains(
+                                                buscar.trim().toLowerCase()))
+                                || (cliente.getTelefono() != null
+                                && cliente.getTelefono()
+                                        .contains(buscar.trim())))
+                        .sorted(Comparator.comparing(
+                                Cliente::getNombre,
+                                Comparator.nullsLast(
+                                        String.CASE_INSENSITIVE_ORDER)))
+                        .collect(Collectors.toList());
 
-        model.addAttribute("clientes", clientesFiltrados);
-        model.addAttribute("nuevoCliente", new Cliente());
+        model.addAttribute(
+                "clientes",
+                clientesFiltrados
+        );
+
+        model.addAttribute(
+                "nuevoCliente",
+                new Cliente()
+        );
+
         model.addAttribute("buscar", buscar);
 
         return "clientes";
@@ -753,19 +893,27 @@ public class InicioController {
                     || nuevoCliente.getNombre().isBlank()) {
 
                 redirectAttributes.addFlashAttribute(
-                        "mensajeError", "El nombre del cliente es obligatorio.");
+                        "mensajeError",
+                        "El nombre del cliente es obligatorio.");
+
                 return "redirect:/clientes";
             }
 
-            nuevoCliente.setNombre(nuevoCliente.getNombre().trim());
+            nuevoCliente.setNombre(
+                    nuevoCliente.getNombre().trim()
+            );
+
             clienteRepository.save(nuevoCliente);
 
             redirectAttributes.addFlashAttribute(
-                    "mensajeExito", "Cliente registrado correctamente.");
+                    "mensajeExito",
+                    "Cliente registrado correctamente.");
 
         } catch (Exception e) {
+
             redirectAttributes.addFlashAttribute(
-                    "mensajeError", "Ocurrió un error al registrar el cliente.");
+                    "mensajeError",
+                    "Ocurrió un error al registrar el cliente.");
         }
 
         return "redirect:/clientes";
@@ -779,12 +927,20 @@ public class InicioController {
 
         return clienteRepository.findById(id)
                 .map(cliente -> {
-                    model.addAttribute("clienteEditar", cliente);
+
+                    model.addAttribute(
+                            "clienteEditar",
+                            cliente
+                    );
+
                     return "editar-cliente";
                 })
                 .orElseGet(() -> {
+
                     redirectAttributes.addFlashAttribute(
-                            "mensajeError", "El cliente solicitado no existe.");
+                            "mensajeError",
+                            "El cliente solicitado no existe.");
+
                     return "redirect:/clientes";
                 });
     }
@@ -796,21 +952,33 @@ public class InicioController {
             RedirectAttributes redirectAttributes) {
 
         try {
-            Cliente cliente = clienteRepository.findById(id).orElse(null);
+            Cliente cliente = clienteRepository
+                    .findById(id)
+                    .orElse(null);
 
             if (cliente == null) {
+
                 redirectAttributes.addFlashAttribute(
-                        "mensajeError", "El cliente no existe.");
+                        "mensajeError",
+                        "El cliente no existe.");
+
                 return "redirect:/clientes";
             }
 
-            if (datos.getNombre() == null || datos.getNombre().isBlank()) {
+            if (datos.getNombre() == null
+                    || datos.getNombre().isBlank()) {
+
                 redirectAttributes.addFlashAttribute(
-                        "mensajeError", "El nombre del cliente es obligatorio.");
+                        "mensajeError",
+                        "El nombre del cliente es obligatorio.");
+
                 return "redirect:/clientes";
             }
 
-            cliente.setNombre(datos.getNombre().trim());
+            cliente.setNombre(
+                    datos.getNombre().trim()
+            );
+
             cliente.setTelefono(datos.getTelefono());
             cliente.setDireccion(datos.getDireccion());
             cliente.setObservaciones(datos.getObservaciones());
@@ -818,11 +986,14 @@ public class InicioController {
             clienteRepository.save(cliente);
 
             redirectAttributes.addFlashAttribute(
-                    "mensajeExito", "Cliente actualizado correctamente.");
+                    "mensajeExito",
+                    "Cliente actualizado correctamente.");
 
         } catch (Exception e) {
+
             redirectAttributes.addFlashAttribute(
-                    "mensajeError", "No se pudo actualizar el cliente.");
+                    "mensajeError",
+                    "No se pudo actualizar el cliente.");
         }
 
         return "redirect:/clientes";
@@ -835,24 +1006,31 @@ public class InicioController {
 
         try {
             if (!clienteRepository.existsById(id)) {
+
                 redirectAttributes.addFlashAttribute(
-                        "mensajeError", "El cliente no existe.");
+                        "mensajeError",
+                        "El cliente no existe.");
+
                 return "redirect:/clientes";
             }
 
             clienteRepository.deleteById(id);
 
             redirectAttributes.addFlashAttribute(
-                    "mensajeExito", "Cliente eliminado correctamente.");
+                    "mensajeExito",
+                    "Cliente eliminado correctamente.");
 
         } catch (DataIntegrityViolationException e) {
+
             redirectAttributes.addFlashAttribute(
                     "mensajeError",
                     "No se puede eliminar este cliente porque tiene ventas relacionadas.");
 
         } catch (Exception e) {
+
             redirectAttributes.addFlashAttribute(
-                    "mensajeError", "No se pudo eliminar el cliente.");
+                    "mensajeError",
+                    "No se pudo eliminar el cliente.");
         }
 
         return "redirect:/clientes";
